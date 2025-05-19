@@ -5,5 +5,11 @@
     "psr-4": {
       "Loom\\FrameworkComponent\\": "src/"
     }
+  },
+  "require": {
+    "loomlabs/http-component": "^1.0",
+    "loomlabs/dependency-injection-component": "^1.0",
+    "loomlabs/router-component": "^1.0",
+    "latte/latte": "^3.0"
   }
 }
