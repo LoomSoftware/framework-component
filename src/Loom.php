@@ -7,6 +7,7 @@ namespace Loom\FrameworkComponent;
 use Loom\DependencyInjectionComponent\DependencyContainer;
 use Loom\DependencyInjectionComponent\DependencyManager;
 use Loom\DependencyInjectionComponent\Exception\NotFoundException;
+use Loom\FrameworkComponent\Controller\LoomController;
 use Loom\RouterComponent\Router;
 
 final class Loom
@@ -18,11 +19,16 @@ final class Loom
     /**
      * @throws NotFoundException
      */
-    public function __construct(private readonly string $configDirectory)
-    {
+    public function __construct(
+        private readonly string $configDirectory,
+        private readonly string $cacheDirectory,
+        private readonly string $templateDirectory
+    ) {
         $this->container = new DependencyContainer();
         $this->dependencyManager = new DependencyManager($this->container);
         $this->router = new Router($this->container);
+
+        LoomController::setDirectories($this->templateDirectory, $this->cacheDirectory);
 
         $this->loadDependencies();
         $this->loadRoutes();
