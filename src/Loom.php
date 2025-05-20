@@ -9,6 +9,8 @@ use Loom\DependencyInjectionComponent\DependencyManager;
 use Loom\DependencyInjectionComponent\Exception\NotFoundException;
 use Loom\FrameworkComponent\Controller\LoomController;
 use Loom\RouterComponent\Router;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 final class Loom
 {
@@ -32,6 +34,22 @@ final class Loom
 
         $this->loadDependencies();
         $this->loadRoutes();
+    }
+
+    public function run(RequestInterface $request): ResponseInterface
+    {
+        $response = $this->router->handleRequest($request);
+
+        http_response_code($response->getStatusCode());
+        header(sprintf('HTTP/%s %s %s', $response->getProtocolVersion(), $response->getStatusCode(), $response->getReasonPhrase()));
+
+        foreach ($response->getHeaders() as $name => $values) {
+            foreach ($values as $value) {
+                header(sprintf('%s: %s', $name, $value), false);
+            }
+        }
+
+        return $response;
     }
 
     /**
