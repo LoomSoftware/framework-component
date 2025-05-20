@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Loom\FrameworkComponent;
 
+use Dotenv\Dotenv;
 use Loom\DependencyInjectionComponent\DependencyContainer;
 use Loom\DependencyInjectionComponent\DependencyManager;
 use Loom\DependencyInjectionComponent\Exception\NotFoundException;
@@ -26,6 +27,9 @@ final class Loom
         private readonly string $cacheDirectory,
         private readonly string $templateDirectory
     ) {
+        $dotenv = Dotenv::createImmutable($this->configDirectory);
+        $dotenv->load();
+
         $this->container = new DependencyContainer();
         $this->dependencyManager = new DependencyManager($this->container);
         $this->router = new Router($this->container);

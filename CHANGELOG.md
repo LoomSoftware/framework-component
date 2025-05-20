@@ -1,6 +1,6 @@
 # Loom | Framework Component | CHANGELOG
 
-## [1.0.1] - 2025-05-19
+## [Unreleased]
 ### Added
 - Added `run` method.
 
