@@ -1,5 +1,6 @@
 {
   "name": "loomlabs/framework-component",
+  "description": "The Loom Framework Component",
   "version": "1.0.0",
   "autoload": {
     "psr-4": {
