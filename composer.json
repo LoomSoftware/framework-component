@@ -7,6 +7,11 @@
       "Loom\\FrameworkComponent\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Loom\\FrameworkComponent\\Tests\\": "tests/"
+    }
+  },
   "scripts": {
     "badge": "./vendor/bin/badger badge:version . && ./vendor/bin/badger  badge:license ."
   },
