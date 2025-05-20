@@ -10,6 +10,7 @@ use Loom\DependencyInjectionComponent\DependencyManager;
 use Loom\DependencyInjectionComponent\Exception\NotFoundException;
 use Loom\FrameworkComponent\Controller\LoomController;
 use Loom\RouterComponent\Router;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -34,18 +35,30 @@ final class Loom
         $this->dependencyManager = new DependencyManager($this->container);
         $this->router = new Router($this->container);
 
+        if (isset($_ENV['PAGE_NOT_FOUND_CONTROLLER'])) {
+            $this->router->setNotFoundHandler($_ENV['PAGE_NOT_FOUND_CONTROLLER']);
+        }
+
         LoomController::setDirectories($this->templateDirectory, $this->cacheDirectory);
 
         $this->loadDependencies();
         $this->loadRoutes();
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     */
     public function run(RequestInterface $request): ResponseInterface
     {
         $response = $this->router->handleRequest($request);
 
         http_response_code($response->getStatusCode());
-        header(sprintf('HTTP/%s %s %s', $response->getProtocolVersion(), $response->getStatusCode(), $response->getReasonPhrase()));
+        header(sprintf(
+            'HTTP/%s %s %s',
+            $response->getProtocolVersion(),
+            $response->getStatusCode(),
+            $response->getReasonPhrase()
+        ));
 
         foreach ($response->getHeaders() as $name => $values) {
             foreach ($values as $value) {
@@ -61,6 +74,7 @@ final class Loom
      */
     private function loadDependencies(): void
     {
+        // @todo: Could be improved.
         $files = [
             'services.yaml',
             'services.yml',
