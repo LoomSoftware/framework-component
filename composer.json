@@ -1,24 +1,24 @@
 {
-  "name": "loomlabs/framework-component",
+  "name": "loomsoftware/framework-component",
   "description": "The Loom Framework Component",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "autoload": {
     "psr-4": {
       "Loom\\FrameworkComponent\\": "src/"
     }
   },
   "scripts": {
-    "badge": "./vendor/bin/badger badge:version . && ./vendor/bin/badger  badge:license ."
+    "badge": "./vendor/bin/badger badge:version . && ./vendor/bin/badger badge:license ."
   },
   "require": {
-    "loomlabs/http-component": "^1.0",
-    "loomlabs/dependency-injection-component": "^1.0",
-    "loomlabs/router-component": "^1.0",
+    "loomsoftware/http-component": "^1.0",
+    "loomsoftware/dependency-injection-component": "^1.0",
+    "loomsoftware/router-component": "^1.0",
     "latte/latte": "^3.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^12.1",
-    "loomlabs/badger": "^1.0"
+    "loomsoftware/badger": "^1.0"
   },
   "license": "GPL-3.0-or-later"
 }
