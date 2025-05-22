@@ -1,6 +1,8 @@
 name: Maintenance
 description: A general maintenance task.
-labels: [type: maintenance]
+labels: [enhancement]
+type: Maintenance
+projects: ["LoomSoftware/1"]
 body:
   - type: textarea
     id: description
