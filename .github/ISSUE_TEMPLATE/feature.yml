@@ -1,8 +1,8 @@
 name: Feature
 description: A new feature or functionality.
 labels: [enhancement]
-projects: ["LoomSoftware/1"]
 type: Feature
+projects: ["LoomSoftware/1"]
 body:
   - type: textarea
     id: description

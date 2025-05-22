@@ -1,0 +1,13 @@
+name: Improvement
+description: An improvement to an existing area or piece of functionality.
+labels: [enhancement]
+type: Improvement
+projects: ["LoomSoftware/1"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: Describe the improvement.
+    validations:
+      required: true
