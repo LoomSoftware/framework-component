@@ -1,0 +1,18 @@
+name: Documentation
+description: New documentation or improvements to existing documentation.
+labels: [documentation]
+type: Documentation
+projects: ["LoomSoftware/1"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Requirements
+      placeholder: Describe the requirements for the documentation.
+    validations:
+      required: true
+  - type: input
+    id: documentation-link
+    attributes:
+      label: Existing Documentation URL
+      placeholder: Provide a link to the existing documentation (if applicable).

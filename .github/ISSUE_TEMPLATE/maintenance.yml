@@ -1,0 +1,14 @@
+name: Maintenance
+description: A general maintenance task.
+labels: [enhancement]
+type: Maintenance
+projects: ["LoomSoftware/1"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A brief description of the maintenance task.
+      placeholder: Describe the maintenance task to be carried out.
+    validations:
+      required: true

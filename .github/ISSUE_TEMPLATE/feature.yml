@@ -1,0 +1,19 @@
+name: Feature
+description: A new feature or functionality.
+labels: [enhancement]
+type: Feature
+projects: ["LoomSoftware/1"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: Describe the feature or functionality.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: Frontend
+        - label: Backend
+        - label: Infrastructure
