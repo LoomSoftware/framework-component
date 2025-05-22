@@ -6,7 +6,12 @@ body:
     id: description
     attributes:
       label: Description
-      description: A brief description of bug.
-      placeholder: Describe what is happening.
-    validations:
-      required: true
+      placeholder: Describe the feature or functionality.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: Frontend
+        - label: Backend
+        - label: Infrastructure
