@@ -6,7 +6,25 @@ body:
     id: description
     attributes:
       label: Issue
-      description: A brief description of bug.
+      description: A brief description of the bug.
       placeholder: Describe what is happening.
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Steps to reproduce
+      description: Clear and concise instructions on how to reproduce the bug.
+      placeholder: Provide steps to reproduce the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen.
+      placeholder: What should have happened instead.
     validations:
       required: true

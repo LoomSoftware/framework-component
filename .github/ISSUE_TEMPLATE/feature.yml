@@ -1,0 +1,12 @@
+name: Feature
+description: A new feature or functionality.
+labels: [type: feature]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A brief description of bug.
+      placeholder: Describe what is happening.
+    validations:
+      required: true
