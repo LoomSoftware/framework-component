@@ -1,7 +1,7 @@
 name: Release
 description: An issue to assist with release planning.
 labels: [release]
-type: Bug
+type: Release
 projects: ["LoomSoftware/1"]
 body:
   - type: textarea
@@ -9,6 +9,6 @@ body:
     attributes:
       label: CHANGELOG
       description: Provide the CHANGELOG notes for the release.
-      placeholder: Describe what is happening.
+      placeholder: Provide a list of changes.
     validations:
       required: true
