@@ -1,0 +1,12 @@
+name: Bug
+description: Broken functionality or unexpected behaviour.
+labels: [type: bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue
+      description: A brief description of bug.
+      placeholder: Describe what is happening.
+    validations:
+      required: true
