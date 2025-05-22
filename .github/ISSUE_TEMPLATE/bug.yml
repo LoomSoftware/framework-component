@@ -2,6 +2,7 @@ name: Bug
 description: Broken functionality or unexpected behaviour.
 labels: [bug]
 type: Bug
+projects: ["LoomSoftware/1"]
 body:
   - type: textarea
     id: description
