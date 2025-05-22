@@ -12,7 +12,7 @@ body:
       required: true
 
   - type: textarea
-    id: description
+    id: steps-to-reproduce
     attributes:
       label: Steps to reproduce
       description: Clear and concise instructions on how to reproduce the bug.
@@ -21,7 +21,7 @@ body:
       required: true
 
   - type: textarea
-    id: description
+    id: expected-behavior
     attributes:
       label: Expected behavior
       description: What you expected to happen.
