@@ -4,6 +4,14 @@ labels: [bug]
 type: Bug
 projects: ["LoomSoftware/1"]
 body:
+  - type: input
+    id: bug-version
+    attributes:
+      label: Bug Found in Version
+      description: The version of the software where the bug was discovered.
+      placeholder: e.g., 1.2.3
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:
@@ -12,7 +20,6 @@ body:
       placeholder: Describe what is happening.
     validations:
       required: true
-
   - type: textarea
     id: steps-to-reproduce
     attributes:
@@ -21,7 +28,6 @@ body:
       placeholder: Provide steps to reproduce the issue.
     validations:
       required: true
-
   - type: textarea
     id: expected-behavior
     attributes:
