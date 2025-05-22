@@ -10,14 +10,3 @@ body:
       placeholder: Describe the maintenance task to be carried out.
     validations:
       required: true
-
-  - type: dropdown
-    id: issue-type
-    attributes:
-      label: Issue Type
-      description: The type of issue being addressed.
-      options:
-        - Maintenance
-      default: 0
-    validations:
-      required: true
