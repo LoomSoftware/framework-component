@@ -6,5 +6,7 @@ body:
     id: description
     attributes:
       label: Description
-      description: Describe the maintenance task
-      placeholder: Description of the maintenance task to be carrired out.
+      description: A brief description of the maintenance task.
+      placeholder: Describe the maintenance task to be carried out.
+    validations:
+      required: true
