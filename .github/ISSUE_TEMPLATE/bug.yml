@@ -1,6 +1,6 @@
 name: Bug
 description: Broken functionality or unexpected behaviour.
-labels: [type: bug]
+labels: [bug]
 type: Bug
 body:
   - type: textarea
