@@ -1,0 +1,10 @@
+name: Maintenance
+description: A general maintenance task.
+labels: [type: maintenance]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the maintenance task
+      placeholder: Description of the maintenance task to be carrired out.
