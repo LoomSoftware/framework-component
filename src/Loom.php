@@ -8,6 +8,7 @@ use Dotenv\Dotenv;
 use Loom\DependencyInjectionComponent\DependencyContainer;
 use Loom\DependencyInjectionComponent\DependencyManager;
 use Loom\DependencyInjectionComponent\Exception\NotFoundException;
+use Loom\FrameworkComponent\Classes\Database\DatabaseConnection;
 use Loom\FrameworkComponent\Controller\LoomController;
 use Loom\RouterComponent\Router;
 use Psr\Container\ContainerExceptionInterface;
@@ -16,6 +17,7 @@ use Psr\Http\Message\ResponseInterface;
 
 final class Loom
 {
+    private static DatabaseConnection $databaseConnection;
     private DependencyContainer $container;
     private DependencyManager $dependencyManager;
     private Router $router;
@@ -67,6 +69,16 @@ final class Loom
         }
 
         return $response;
+    }
+
+    public static function setDatabaseConnection(DatabaseConnection $databaseConnection): void
+    {
+        Loom::$databaseConnection = $databaseConnection;
+    }
+
+    public static function getDatabaseConnection(): DatabaseConnection
+    {
+        return Loom::$databaseConnection;
     }
 
     /**
