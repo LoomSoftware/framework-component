@@ -21,4 +21,9 @@ class DatabaseConnection
             throw new \Exception('Database connection failed: '. $e->getMessage());
         }
     }
+
+    public function getConnection(): \PDO
+    {
+        return $this->connection;
+    }
 }
