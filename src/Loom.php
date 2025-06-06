@@ -23,7 +23,7 @@ final class Loom
     private Router $router;
 
     /**
-     * @throws NotFoundException
+     * @throws \Exception|NotFoundException
      */
     public function __construct(
         private readonly string $configDirectory,
