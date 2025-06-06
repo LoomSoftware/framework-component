@@ -24,7 +24,7 @@ class LoomModel
         static::$databaseConnection = $databaseConnection;
     }
 
-    protected static function getSchemaName(): ?string
+    public static function getSchemaName(): ?string
     {
         $schemaName = static::getAttributeArgument(Schema::class, 'name');
 
@@ -35,7 +35,7 @@ class LoomModel
         return $schemaName;
     }
 
-    protected static function getTableName(): ?string
+    public static function getTableName(): ?string
     {
         $tableName = static::getAttributeArgument(Table::class, 'name');
 
