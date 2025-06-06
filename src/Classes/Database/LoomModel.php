@@ -29,6 +29,7 @@ class LoomModel
 
         foreach ($attributes as $attribute) {
             if ($attribute->name === Schema::class) {
+                var_dump($attribute->getArguments());
                 return $attribute->getName();
             }
         }
@@ -42,7 +43,7 @@ class LoomModel
 
         foreach ($attributes as $attribute) {
             if ($attribute->name === Table::class) {
-                return $attribute->getName();
+                return $attribute->getArguments();
             }
         }
 
