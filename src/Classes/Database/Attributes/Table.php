@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Loom\FrameworkComponent\Classes\Database\Attributes;
 
 #[\Attribute(\Attribute::TARGET_CLASS)]
-class Schema
+class Table
 {
     public function __construct(private readonly string $name)
     {
