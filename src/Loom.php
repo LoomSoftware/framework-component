@@ -9,6 +9,7 @@ use Loom\DependencyInjectionComponent\DependencyContainer;
 use Loom\DependencyInjectionComponent\DependencyManager;
 use Loom\DependencyInjectionComponent\Exception\NotFoundException;
 use Loom\FrameworkComponent\Classes\Database\DatabaseConnection;
+use Loom\FrameworkComponent\Classes\Database\LoomModel;
 use Loom\FrameworkComponent\Controller\LoomController;
 use Loom\RouterComponent\Router;
 use Psr\Container\ContainerExceptionInterface;
@@ -47,6 +48,7 @@ final class Loom
                 $_ENV['DATABASE_USER'],
                 $_ENV['DATABASE_PASSWORD']
             );
+            LoomModel::setDatabaseConnection(Loom::$databaseConnection);
         }
 
         LoomController::setDirectories($this->templateDirectory, $this->cacheDirectory);
