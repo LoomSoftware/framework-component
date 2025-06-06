@@ -31,7 +31,7 @@ class LoomModel
         $attributes = static::getClassAttributes();
 
         foreach ($attributes as $attribute) {
-            if ($attribute instanceof Schema) {
+            if ($attribute->name === Schema::class) {
                 return $attribute;
             }
         }
@@ -45,11 +45,9 @@ class LoomModel
     protected static function getTableAttribute(): Table
     {
         $attributes = static::getClassAttributes();
-        var_dump($attributes);
 
         foreach ($attributes as $attribute) {
-            var_dump($attribute);
-            if ($attribute instanceof Table) {
+            if ($attribute->name === Table::class) {
                 return $attribute;
             }
         }
