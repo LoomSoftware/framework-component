@@ -6,7 +6,6 @@ namespace Loom\FrameworkComponent\Classes\Database;
 
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
-use function Symfony\Component\String\s;
 
 class LoomModel
 {
@@ -14,9 +13,6 @@ class LoomModel
 
     public function __construct()
     {
-        if (static::$databaseConnection === null) {
-            throw new \Exception('Database connection not set');
-        }
     }
 
     public static function setDatabaseConnection(DatabaseConnection $databaseConnection): void
