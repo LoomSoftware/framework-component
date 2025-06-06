@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Loom\FrameworkComponent\Classes\Database;
 
+use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
+use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 
@@ -20,7 +22,15 @@ class LoomModel
         static::$databaseConnection = $databaseConnection;
     }
 
-    public static function getSchemaName(): ?string
+    public static function getOne(array $where)
+    {
+        var_dump(
+           static::getIdColumn(),
+           static::getIdProperty(),
+        );
+    }
+
+    protected static function getSchemaName(): ?string
     {
         $schemaName = static::getAttributeArgument(Schema::class, 'name');
 
@@ -31,7 +41,7 @@ class LoomModel
         return $schemaName;
     }
 
-    public static function getTableName(): ?string
+    protected static function getTableName(): ?string
     {
         $tableName = static::getAttributeArgument(Table::class, 'name');
 
@@ -53,6 +63,32 @@ class LoomModel
                 if (array_key_exists($argument, $arguments)) {
                     return $arguments[$argument];
                 }
+            }
+        }
+
+        return null;
+    }
+
+    private static function getIdProperty()
+    {
+        $reflectionClass = new \ReflectionClass(static::class);
+
+        foreach ($reflectionClass->getProperties() as $property) {
+            if ($property->getAttributes(ID::class)) {
+                return $property->getName();
+            }
+        }
+
+        return null;
+    }
+
+    private static function getIdColumn()
+    {
+        $reflectionClass = new \ReflectionClass(static::class);
+
+        foreach ($reflectionClass->getProperties() as $property) {
+            if ($property->getAttributes(Column::class)) {
+                return $property->getAttributes(Column::class)[0]->getArguments()['name'];
             }
         }
 
