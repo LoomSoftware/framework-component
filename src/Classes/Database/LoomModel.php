@@ -6,6 +6,7 @@ namespace Loom\FrameworkComponent\Classes\Database;
 
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
+use function Symfony\Component\String\s;
 
 class LoomModel
 {
@@ -25,25 +26,37 @@ class LoomModel
 
     protected static function getSchemaName(): ?string
     {
-        $attributes = static::getClassAttributes();
+        $schemaName = static::getAttributeArgument(Schema::class, 'name');
 
-        foreach ($attributes as $attribute) {
-            if ($attribute->name === Schema::class) {
-                return $attribute->getName();
-            }
+        if (!$schemaName || !is_string($schemaName)) {
+            return null;
         }
 
-        return null;
+        return $schemaName;
     }
 
     protected static function getTableName(): ?string
     {
+        $tableName = static::getAttributeArgument(Table::class, 'name');
+
+        if (!$tableName || !is_string($tableName)) {
+            return null;
+        }
+
+        return $tableName;
+    }
+
+    private static function getAttributeArgument(string $attributeName, string $argument): mixed
+    {
         $attributes = static::getClassAttributes();
 
         foreach ($attributes as $attribute) {
-            if ($attribute->name === Table::class) {
-                var_dump($attribute->getArguments());
-                return $attribute->getName();
+            if ($attribute->name === $attributeName) {
+                $arguments = $attribute->getArguments();
+
+                if (array_key_exists($argument, $arguments)) {
+                    return $arguments[$argument];
+                }
             }
         }
 
