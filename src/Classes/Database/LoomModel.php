@@ -23,36 +23,30 @@ class LoomModel
         static::$databaseConnection = $databaseConnection;
     }
 
-    /**
-     * @throws \Exception
-     */
-    protected static function getSchemaAttribute(): Schema
+    protected static function getSchemaName(): ?string
     {
         $attributes = static::getClassAttributes();
 
         foreach ($attributes as $attribute) {
             if ($attribute->name === Schema::class) {
-                return $attribute;
+                return $attribute->getName();
             }
         }
 
-        throw new \Exception('Schema attribute not found');
+        return null;
     }
 
-    /**
-     * @throws \Exception
-     */
-    protected static function getTableAttribute(): Table
+    protected static function getTableName(): ?string
     {
         $attributes = static::getClassAttributes();
 
         foreach ($attributes as $attribute) {
             if ($attribute->name === Table::class) {
-                return $attribute;
+                return $attribute->getName();
             }
         }
 
-        throw new \Exception('Table attribute not found');
+        return null;
     }
 
     private static function getClassAttributes(): array
