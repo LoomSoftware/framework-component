@@ -72,6 +72,10 @@ class LoomModel
 
     public function queryString(): string
     {
+        if ($this->queryString && !empty($this->joins)) {
+            $this->queryString .= ' ' . implode(' ', $this->joins);
+        }
+
         return $this->queryString;
     }
 
