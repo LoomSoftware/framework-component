@@ -27,9 +27,17 @@ class LoomModel
     public static function select(array $columns = ['*']): static
     {
         $instance = new static();
+        $properties = static::getPropertyMap();
 
         $columns = array_map(
-            fn($column) => sprintf('%s.%s.%s', static::getSchemaName(), static::getTableName(), $column),
+            function ($column) use ($properties) {
+                return sprintf(
+                    '%s.%s.%s',
+                    static::getSchemaName(),
+                    static::getTableName(),
+                        $properties[$column] ?? $column
+                );
+            },
             $columns
         );
         $instance->queryString = sprintf(
@@ -67,6 +75,22 @@ class LoomModel
         }
 
         return $tableName;
+    }
+
+    private static function getPropertyMap(): array
+    {
+        $properties = [];
+        $reflectionClass = new \ReflectionClass(static::class);
+
+        foreach ($reflectionClass->getProperties() as $property) {
+            $attributes = $property->getAttributes(Column::class);
+
+            if ($attributes) {
+                $properties[$property->getName()] = $attributes[0]->getArguments()['name'];
+            }
+        }
+
+        return $properties;
     }
 
     private static function getAttributeArgument(string $attributeName, string $argument): mixed
