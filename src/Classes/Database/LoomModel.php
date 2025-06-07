@@ -13,6 +13,8 @@ class LoomModel
 {
     protected static ?DatabaseConnection $databaseConnection = null;
     protected string $queryString = '';
+    protected array $wheres = [];
+    protected array $joins = [];
     protected array $queryBindings = [];
 
     public function __construct()
@@ -27,7 +29,7 @@ class LoomModel
     public static function select(array $columns = ['*']): static
     {
         $instance = new static();
-        $properties = static::getPropertyMap();
+        $properties = static::getPropertyColumnMap();
 
         $columns = array_map(
             function ($column) use ($properties) {
@@ -35,11 +37,12 @@ class LoomModel
                     '%s.%s.%s',
                     static::getSchemaName(),
                     static::getTableName(),
-                        $properties[$column] ?? $column
+                    $properties[$column] ?? $column
                 );
             },
             $columns
         );
+
         $instance->queryString = sprintf(
             'SELECT %s FROM %s.%s',
             implode(', ', $columns),
@@ -77,7 +80,7 @@ class LoomModel
         return $tableName;
     }
 
-    private static function getPropertyMap(): array
+    private static function getPropertyColumnMap(): array
     {
         $properties = [];
         $reflectionClass = new \ReflectionClass(static::class);
