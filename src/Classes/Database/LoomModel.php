@@ -12,8 +12,8 @@ use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 class LoomModel
 {
     protected static ?DatabaseConnection $databaseConnection = null;
-    protected static string $queryString = '';
-    protected static array $queryBindings = [];
+    protected string $queryString = '';
+    protected array $queryBindings = [];
 
     public function __construct()
     {
@@ -26,20 +26,25 @@ class LoomModel
 
     public static function select(array $columns = ['*']): static
     {
-        $columns = array_map(fn($column) => sprintf('%s.%s.%s', self::getSchemaName(), self::getTableName(), $column), $columns);
-        self::$queryString = sprintf(
+        $instance = new static();
+
+        $columns = array_map(
+            fn($column) => sprintf('%s.%s.%s', static::getSchemaName(), static::getTableName(), $column),
+            $columns
+        );
+        $instance->queryString = sprintf(
             'SELECT %s FROM %s.%s',
             implode(', ', $columns),
-            self::getSchemaName(),
-            self::getTableName()
+            static::getSchemaName(),
+            static::getTableName()
         );
 
-        return new static;
+        return $instance;
     }
 
-    public static function queryString(): string
+    public function queryString(): string
     {
-        return self::$queryString;
+        return $this->queryString;
     }
 
     protected static function getSchemaName(): ?string
