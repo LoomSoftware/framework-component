@@ -26,9 +26,10 @@ class LoomModel
 
     public static function select(array $columns = ['*']): static
     {
+        $columns = array_map(fn($column) => sprintf('%s.%s.%s', self::getSchemaName(), self::getTableName(), $column), $columns);
         self::$queryString = sprintf(
             'SELECT %s FROM %s.%s',
-            implode(sprintf(', %s.%s', self::getSchemaName(), self::getTableName()), $columns),
+            implode(', ', $columns),
             self::getSchemaName(),
             self::getTableName()
         );
