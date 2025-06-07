@@ -14,6 +14,7 @@ class LoomModel
     protected static ?DatabaseConnection $databaseConnection = null;
     protected string $alias = 't0';
     protected string $queryString = '';
+    protected array $columns = [];
     protected array $wheres = [];
     protected array $joins = [];
     protected array $queryBindings = [];
@@ -29,52 +30,39 @@ class LoomModel
 
     public static function select(array $columns = ['*']): static
     {
-        $instance = new static();
-        $properties = static::getPropertyColumnMap();
-
-        $columns = array_map(
-            function ($column) use ($properties) {
-                return sprintf(
-                    '%s.%s.%s',
-                    static::getSchemaName(),
-                    static::getTableName(),
-                    $properties[$column] ?? $column
-                );
-            },
-            $columns
-        );
-
-        $instance->queryString = sprintf(
-            'SELECT %s FROM %s.%s',
-            implode(', ', $columns),
-            static::getSchemaName(),
-            static::getTableName()
-        );
+        $instance = new static;
+        $instance->columns = $columns;
 
         return $instance;
     }
 
     public function innerJoin(string $table, string $alias): static
     {
-        if (!class_exists($table) || !is_subclass_of($table, LoomModel::class)) {
-            return $this;
-        }
-
-        $this->joins[] = sprintf(
-            'INNER JOIN %s.%s AS %s',
-            $table::getSchemaName(),
-            $table::getTableName(),
-            $alias
-        );
+        $this->joins[] = [$table, $alias];
 
         return $this;
     }
 
-    public function queryString(): string
+    public function where(string $column, mixed $value): static
     {
-        if ($this->queryString && !empty($this->joins)) {
-            $this->queryString .= ' ' . implode(' ', $this->joins);
+        $this->wheres[] = [$column, $value];
+
+        return $this;
+    }
+
+    public function getQueryString(): string
+    {
+        $this->queryString = 'SELECT ' . implode(', ', $this->columns) . ' FROM ' . static::getTableName() . ' ' . $this->alias;
+
+        foreach ($this->joins as $join) {
+            $this->queryString .= ' INNER JOIN ' . $join[0] . ' ' . $join[1];
         }
+
+        foreach ($this->wheres as $where) {
+            $this->queryString .= ' WHERE ' . $where[0] . ' = ?';
+        }
+
+        $this->queryBindings = array_merge($this->queryBindings, $this->wheres);
 
         return $this->queryString;
     }
