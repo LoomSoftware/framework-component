@@ -12,6 +12,8 @@ use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 class LoomModel
 {
     protected static ?DatabaseConnection $databaseConnection = null;
+    protected static string $queryString = '';
+    protected static array $queryBindings = [];
 
     public function __construct()
     {
@@ -22,12 +24,21 @@ class LoomModel
         static::$databaseConnection = $databaseConnection;
     }
 
-    public static function getOne(array $where)
+    public static function select(array $columns = ['*']): static
     {
-        var_dump(
-           static::getIdColumn(),
-           static::getIdProperty(),
+        self::$queryString = sprintf(
+            'SELECT %s FROM %s.%s',
+            implode(sprintf(', %s.%s', self::getSchemaName(), self::getTableName()), $columns),
+            self::getSchemaName(),
+            self::getTableName()
         );
+
+        return new static;
+    }
+
+    public static function queryString(): string
+    {
+        return self::$queryString;
     }
 
     protected static function getSchemaName(): ?string
@@ -69,7 +80,7 @@ class LoomModel
         return null;
     }
 
-    private static function getIdProperty()
+    private static function getIdProperty(): ?string
     {
         $reflectionClass = new \ReflectionClass(static::class);
 
@@ -82,7 +93,7 @@ class LoomModel
         return null;
     }
 
-    private static function getIdColumn()
+    private static function getIdColumn(): ?string
     {
         $reflectionClass = new \ReflectionClass(static::class);
 

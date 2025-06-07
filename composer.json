@@ -9,11 +9,12 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Loom\\FrameworkComponent\\Tests\\": "tests/"
+      "Loom\\FrameworkComponent\\Tests\\": "tests/Unit"
     }
   },
   "scripts": {
-    "badge": "./vendor/bin/badger badge:version . && ./vendor/bin/badger badge:license ."
+    "test": "php -d xdebug.mode=coverage ./vendor/bin/phpunit --testdox --colors=always --coverage-html coverage --coverage-clover coverage/coverage.xml --testdox-html coverage/testdox.html && composer badge",
+    "badge": "./vendor/bin/badger badge:version . && ./vendor/bin/badger badge:license . && ./vendor/bin/badger badge:coverage ."
   },
   "require": {
     "loomsoftware/http-component": "^1.0",
