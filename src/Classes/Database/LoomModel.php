@@ -12,6 +12,7 @@ use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 class LoomModel
 {
     protected static ?DatabaseConnection $databaseConnection = null;
+    protected string $alias = 't0';
     protected string $queryString = '';
     protected array $wheres = [];
     protected array $joins = [];
@@ -51,6 +52,22 @@ class LoomModel
         );
 
         return $instance;
+    }
+
+    public function innerJoin(string $table, string $alias): static
+    {
+        if (!class_exists($table) || !is_subclass_of($table, static::class)) {
+            return $this;
+        }
+
+        $this->joins[] = sprintf(
+            'INNER JOIN %s.%s AS %s',
+            $table::getSchemaName(),
+            $table::getTableName(),
+            $alias
+        );
+
+        return $this;
     }
 
     public function queryString(): string
