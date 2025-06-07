@@ -56,7 +56,7 @@ class LoomModel
 
     public function innerJoin(string $table, string $alias): static
     {
-        if (!class_exists($table) || !is_subclass_of($table, static::class)) {
+        if (!class_exists($table) || !is_subclass_of($table, LoomModel::class)) {
             return $this;
         }
 
