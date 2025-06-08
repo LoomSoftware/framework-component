@@ -99,13 +99,17 @@ abstract class LoomModel
                                 continue;
                             }
 
-                            if (isset($modelData[$column])) {
-                                $modelInstance->$property = $modelData[$column];
+                            $columnData = $modelData[$column] ?? $modelData[$property] ?? null;
+
+                            if (!$columnData) {
+                                continue;
                             }
 
-                            if (isset($modelData[$property])) {
-                                $modelInstance->$property = $modelData[$property];
+                            if ($reflectionProperty->getType()->getName() === \DateTimeInterface::class) {
+                                $columnData = new \DateTime($columnData);
                             }
+
+                            $modelInstance->$property = $columnData;
                         }
                     } else {
                         $staticReflectionClass = new \ReflectionClass(static::class);
