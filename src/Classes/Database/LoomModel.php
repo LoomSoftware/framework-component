@@ -43,6 +43,17 @@ abstract class LoomModel
         return $this;
     }
 
+    public function where(string $columnOrProperty, string $value): static
+    {
+        if (!$this->queryBuilder) {
+            return $this;
+        }
+
+        $this->queryBuilder->where($columnOrProperty, $value);
+
+        return $this;
+    }
+
     /**
      * @return static[]
      *

@@ -13,6 +13,7 @@ class QueryBuilder
     private string $table;
     private array $selects = [];
     private array $innerJoins = [];
+    private array $wheres = [];
 
     /**
      * @throws \Exception
@@ -49,6 +50,13 @@ class QueryBuilder
         return $this;
     }
 
+    public function where(string $columnOrProperty, string $value): static
+    {
+        $this->wheres[] = [$columnOrProperty, $value];
+
+        return $this;
+    }
+
     /**
      * @throws \ReflectionException
      */
@@ -57,6 +65,7 @@ class QueryBuilder
         $queryString = $this->getSelectQueryStringPartial();
         $queryString .= $this->getFromQueryStringPartial();
         $queryString .= $this->getInnerJoinQueryStringPartial();
+        $queryString .= $this->getWhereQueryStringPartial();
 
         return $queryString;
     }
@@ -227,5 +236,36 @@ class QueryBuilder
         }
 
         return $sql;
+    }
+
+    private function getWhereQueryStringPartial(): string
+    {
+        $whereStrings = [];
+
+        foreach ($this->wheres as $where) {
+            $columnOrProperty = $where[0];
+            $value = $where[1];
+
+            if (str_contains($columnOrProperty, '.')) {
+                $alias = explode('.', $columnOrProperty)[0];
+                $column = explode('.', $columnOrProperty)[1];
+
+                if ($alias === $this->alias) {
+                    $propertyColumnMap = PropertyColumnMapper::map($this->model);
+
+                    if (isset($propertyColumnMap[$column])) {
+                        $whereStrings[] = sprintf('%s.%s = %s', $this->alias, $propertyColumnMap[$column], $value);
+                    }
+
+                    if (in_array($column, array_values($propertyColumnMap))) {
+                        $whereStrings[] = sprintf('%s.%s = %s', $this->alias, $column, $value);
+                    }
+                }
+            }
+        }
+
+        return count($whereStrings)
+            ? sprintf(' WHERE %s', implode(' AND ', $whereStrings))
+            : '';
     }
 }
