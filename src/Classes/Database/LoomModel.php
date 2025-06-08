@@ -68,7 +68,7 @@ abstract class LoomModel
         $query = static::$databaseConnection?->getConnection()->prepare($this->queryBuilder->getQueryString());
 
         if ($query) {
-            $query->execute();
+            $query->execute($this->queryBuilder->getParameters());
 
             $queryResults = $query->fetchAll();
 
