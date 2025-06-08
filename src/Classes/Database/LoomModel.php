@@ -121,7 +121,7 @@ abstract class LoomModel
                             }
 
                             if ($reflectionProperty->getType()->getName() === 'bool') {
-                                $columnData = (int) $columnData;
+                                $columnData = (bool) $columnData;
                             }
 
                             $modelInstance->$property = $columnData;
