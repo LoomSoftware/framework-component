@@ -17,4 +17,7 @@ class PackageType extends LoomModel
     #[ID]
     #[Column(name: 'intPackageTypeId')]
     protected int $id;
+
+    #[Column(name: 'strPackageTypeName')]
+    protected string $name;
 }

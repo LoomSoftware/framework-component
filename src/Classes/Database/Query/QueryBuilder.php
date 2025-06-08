@@ -73,27 +73,31 @@ class QueryBuilder
     {
         $joinSelects = null;
 
-        if (empty($this->selects)) {
+        if (empty($this->selects) || (count($this->selects) === 1 && $this->selects[0] === '*')) {
             $this->selects = ['*'];
+            $joinSelects = [];
 
-            $joinSelects = array_map(function ($join) {
-                return sprintf('%s.*', $join['alias']);
-            }, $this->innerJoins);
+            foreach ($this->innerJoins as $join) {
+                $propertyColumnMap = PropertyColumnMapper::map($join['model']);
+
+                foreach ($propertyColumnMap as $property => $column) {
+                    $joinSelects[] = sprintf('%s.%s AS %s_%s', $join['alias'], $column, $join['alias'], $property);
+                }
+            }
         }
 
         $propertyColumnMap = PropertyColumnMapper::map($this->model);
-        $sql = 'SELECT %s ';
         $selects = array_map(function ($select) use ($propertyColumnMap) {
-            if ($select === '*') {
-                return sprintf('%s.*', $this->alias);
-            }
-
             if (isset($propertyColumnMap[$select])) {
                 return sprintf('%s.%s AS %s_%s', $this->alias, $propertyColumnMap[$select], $this->alias, $select);
             }
 
             if (in_array($select, array_values($propertyColumnMap))) {
-                return sprintf('%s.%s', $this->alias, $select);
+                foreach ($propertyColumnMap as $property => $column) {
+                    if ($column === $select) {
+                        return sprintf('%s.%s AS %s_%s', $this->alias, $column, $this->alias, $property);
+                    }
+                }
             }
 
             if (str_contains($select, '.')) {
@@ -107,13 +111,27 @@ class QueryBuilder
                 }
             }
 
-            if ($select === $this->alias) {
-                return sprintf('%s.*', $this->alias);
+            if ($select === $this->alias || $select === '*') {
+                $columnSelects = [];
+
+                foreach ($propertyColumnMap as $property => $column) {
+                    $columnSelects[] = sprintf('%s.%s AS %s_%s', $this->alias, $column, $this->alias, $property);
+                }
+
+                return implode(', ', $columnSelects);
             }
 
             foreach ($this->innerJoins as $join) {
                 if ($select === $join['alias']) {
-                    return sprintf('%s.*', $join['alias']);
+                    $propertyColumnMap = PropertyColumnMapper::map($join['model']);
+
+                    $columnSelects = [];
+
+                    foreach ($propertyColumnMap as $property => $column) {
+                        $columnSelects[] = sprintf('%s.%s AS %s_%s', $join['alias'], $column, $join['alias'], $property);
+                    }
+
+                    return implode(', ', $columnSelects);
                 }
             }
 
@@ -124,7 +142,7 @@ class QueryBuilder
             $selects = array_merge($selects, $joinSelects);
         }
 
-        return sprintf($sql, implode(', ', $selects));
+        return sprintf('SELECT %s ', implode(', ', $selects));
     }
 
     private function getFromQueryStringPartial(): string
