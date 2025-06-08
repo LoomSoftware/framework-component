@@ -255,11 +255,19 @@ class QueryBuilder
                     $propertyColumnMap = PropertyColumnMapper::map($this->model);
 
                     if (isset($propertyColumnMap[$column])) {
-                        $whereStrings[] = sprintf('%s.%s = \'%s\'', $this->alias, $propertyColumnMap[$column], $value);
+                        if (is_string($value)) {
+                            $whereStrings[] = sprintf('%s.%s = \'%s\'', $this->alias, $propertyColumnMap[$column], $value);
+                        } else {
+                            $whereStrings[] = sprintf('%s.%s = %s', $this->alias, $propertyColumnMap[$column], $value);
+                        }
                     }
 
                     if (in_array($column, array_values($propertyColumnMap))) {
-                        $whereStrings[] = sprintf('%s.%s = \'%s\'', $this->alias, $column, $value);
+                        if (is_string($value)) {
+                            $whereStrings[] = sprintf('%s.%s = \'%s\'', $this->alias, $column, $value);
+                        } else {
+                            $whereStrings[] = sprintf('%s.%s = %s', $this->alias, $column, $value);
+                        }
                     }
                 }
             }
