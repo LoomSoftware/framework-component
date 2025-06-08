@@ -268,6 +268,28 @@ class QueryBuilder
                             $whereStrings[] = sprintf('%s.%s = %s', $this->alias, $column, $value);
                         }
                     }
+                } else {
+                    foreach ($this->innerJoins as $join) {
+                        if ($alias === $join['alias']) {
+                            $propertyColumnMap = PropertyColumnMapper::map($join['model']);
+
+                            if (isset($propertyColumnMap[$column])) {
+                                if (is_string($value)) {
+                                    $whereStrings[] = sprintf('%s.%s = \'%s\'', $join['alias'], $propertyColumnMap[$column], $value);
+                                } else {
+                                    $whereStrings[] = sprintf('%s.%s = %s', $join['alias'], $propertyColumnMap[$column], $value);
+                                }
+                            }
+
+                            if (in_array($column, array_values($propertyColumnMap))) {
+                                if (is_string($value)) {
+                                    $whereStrings[] = sprintf('%s.%s = \'%s\'', $join['alias'], $column, $value);
+                                } else {
+                                    $whereStrings[] = sprintf('%s.%s = %s', $join['alias'], $column, $value);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
