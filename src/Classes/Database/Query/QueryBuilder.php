@@ -274,8 +274,11 @@ class QueryBuilder
             }
         }
 
-        return count($whereStrings)
+        $ret = count($whereStrings)
             ? sprintf(' WHERE %s', implode(' AND ', $whereStrings))
             : '';
+
+        var_dump($ret);
+        return $ret;
     }
 }
