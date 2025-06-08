@@ -245,6 +245,7 @@ class QueryBuilder
         $whereStrings = [];
 
         foreach ($this->wheres as $where) {
+            var_dump($where);
             $columnOrProperty = $where[0];
             $value = $where[1];
 
