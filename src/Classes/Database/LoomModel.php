@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Loom\FrameworkComponent\Classes\Database;
 
+use Loom\FrameworkComponent\Classes\Core\Helper\AttributeHelper;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
 use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
@@ -24,9 +25,16 @@ abstract class LoomModel
         static::$databaseConnection = $databaseConnection;
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public static function getSchemaName(): ?string
     {
-        $schemaName = static::getAttributeArgument(Schema::class, 'name');
+        $schemaName = AttributeHelper::getAttributeValue(
+            static::class,
+            Schema::class,
+            'name'
+        );
 
         if (!$schemaName || !is_string($schemaName)) {
             return null;
@@ -35,62 +43,21 @@ abstract class LoomModel
         return $schemaName;
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public static function getTableName(): ?string
     {
-        $tableName = static::getAttributeArgument(Table::class, 'name');
+        $tableName = AttributeHelper::getAttributeValue(
+            static::class,
+            Table::class,
+            'name'
+        );
 
         if (!$tableName || !is_string($tableName)) {
             return null;
         }
 
         return $tableName;
-    }
-
-    private static function getAttributeArgument(string $attributeName, string $argument): mixed
-    {
-        $attributes = static::getClassAttributes();
-
-        foreach ($attributes as $attribute) {
-            if ($attribute->name === $attributeName) {
-                $arguments = $attribute->getArguments();
-
-                if (array_key_exists($argument, $arguments)) {
-                    return $arguments[$argument];
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static function getIdProperty(): ?string
-    {
-        $reflectionClass = new \ReflectionClass(static::class);
-
-        foreach ($reflectionClass->getProperties() as $property) {
-            if ($property->getAttributes(ID::class)) {
-                return $property->getName();
-            }
-        }
-
-        return null;
-    }
-
-    private static function getIdColumn(): ?string
-    {
-        $reflectionClass = new \ReflectionClass(static::class);
-
-        foreach ($reflectionClass->getProperties() as $property) {
-            if ($property->getAttributes(Column::class)) {
-                return $property->getAttributes(Column::class)[0]->getArguments()['name'];
-            }
-        }
-
-        return null;
-    }
-
-    private static function getClassAttributes(): array
-    {
-        return new \ReflectionClass(static::class)->getAttributes();
     }
 }
