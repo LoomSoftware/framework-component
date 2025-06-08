@@ -99,6 +99,10 @@ class QueryBuilder
                 }
             }
 
+            if ($select === $this->alias) {
+                return sprintf('%s.*', $this->alias);
+            }
+
             foreach ($this->innerJoins as $join) {
                 if ($select === $join['alias']) {
                     return sprintf('%s.*', $join['alias']);
