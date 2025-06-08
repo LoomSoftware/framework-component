@@ -293,14 +293,6 @@ class QueryBuilder
 
     private function addWhereString(string $alias, string $column, mixed $value): string
     {
-        if (is_string($value)) {
-            return sprintf('%s.%s = ?', $alias, $column);
-        } elseif (is_numeric($value)) {
-            return sprintf('%s.%s = ?', $alias, $column);
-        } elseif (is_bool($value)) {
-            return sprintf('%s.%s = ?', $alias, $column);
-        }
-
-        return '';
+        return sprintf('%s.%s = ?', $alias, $column);
     }
 }
