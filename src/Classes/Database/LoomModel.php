@@ -120,6 +120,10 @@ abstract class LoomModel
                                 $columnData = new \DateTime($columnData);
                             }
 
+                            if ($reflectionProperty->getType()->getName() === 'boolean') {
+                                $columnData = (int) $columnData;
+                            }
+
                             $modelInstance->$property = $columnData;
                         }
                     } else {
