@@ -67,8 +67,6 @@ class QueryBuilder
         $queryString .= $this->getInnerJoinQueryStringPartial();
         $queryString .= $this->getWhereQueryStringPartial();
 
-        var_dump($queryString);
-
         return $queryString;
     }
 
@@ -252,8 +250,6 @@ class QueryBuilder
                 $alias = explode('.', $columnOrProperty)[0];
                 $column = explode('.', $columnOrProperty)[1];
 
-                var_dump($alias, $column);
-
                 if ($alias === $this->alias) {
                     $propertyColumnMap = PropertyColumnMapper::map($this->model);
 
@@ -276,11 +272,8 @@ class QueryBuilder
             }
         }
 
-        $ret = count($whereStrings)
+        return count($whereStrings)
             ? sprintf(' WHERE %s', implode(' AND ', $whereStrings))
             : '';
-
-        var_dump($ret);
-        return $ret;
     }
 }
