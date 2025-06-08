@@ -245,13 +245,14 @@ class QueryBuilder
         $whereStrings = [];
 
         foreach ($this->wheres as $where) {
-            var_dump($where);
             $columnOrProperty = $where[0];
             $value = $where[1];
 
             if (str_contains($columnOrProperty, '.')) {
                 $alias = explode('.', $columnOrProperty)[0];
                 $column = explode('.', $columnOrProperty)[1];
+
+                var_dump($alias, $column);
 
                 if ($alias === $this->alias) {
                     $propertyColumnMap = PropertyColumnMapper::map($this->model);
