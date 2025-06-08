@@ -9,6 +9,7 @@
   },
   "autoload-dev": {
     "psr-4": {
+      "Loom\\FrameworkComponent\\TestData\\": "tests/Data",
       "Loom\\FrameworkComponent\\Tests\\": "tests/Unit"
     }
   },

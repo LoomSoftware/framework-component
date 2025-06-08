@@ -2,7 +2,7 @@
 
 <p>
 <!-- Coverage Badge -->
-<img src="https://img.shields.io/badge/Coverage-11.41%25-cb2f1c" alt="Coverage 11.41%">
+<img src="https://img.shields.io/badge/Coverage-48.92%25-cb891c" alt="Coverage 48.92%">
 <!-- Version Badge -->
 <img src="https://img.shields.io/badge/Version-1.0.1-blue" alt="Version 1.0.1">
 <!-- License Badge -->

@@ -1,0 +1,192 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Loom\FrameworkComponent\Classes\Database\Query;
+
+use Loom\FrameworkComponent\Classes\Database\LoomModel;
+use Loom\FrameworkComponent\Classes\Database\Mapper\PropertyColumnMapper;
+
+class QueryBuilder
+{
+    private string $schema;
+    private string $table;
+    private array $selects = [];
+    private array $innerJoins = [];
+
+    /**
+     * @throws \Exception
+     */
+    public function __construct(private readonly string $model, private readonly string $alias)
+    {
+        if (!class_exists($this->model)) {
+            throw new \Exception('Model class does not exist');
+        }
+
+        if (!is_subclass_of($this->model, LoomModel::class)) {
+            throw new \Exception('Model class is not a LoomModel');
+        }
+
+        $this->schema = $this->model::getSchemaName();
+        $this->table = $this->model::getTableName();
+    }
+
+    public function select(array $columns = ['*']): static
+    {
+        $this->selects = $columns;
+
+        return $this;
+    }
+
+    public function innerJoin(string $model, string $alias, array $conditions): static
+    {
+        $this->innerJoins[] = [
+            'model' => $model,
+            'alias' => $alias,
+            'conditions' => $conditions,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    public function getQueryString(): string
+    {
+        $queryString = $this->getSelectQueryStringPartial();
+        $queryString .= $this->getFromQueryStringPartial();
+        $queryString .= $this->getInnerJoinQueryStringPartial();
+
+        $this->selects = [];
+        $this->innerJoins = [];
+
+        return $queryString;
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    private function getSelectQueryStringPartial(): string
+    {
+        if (empty($this->selects)) {
+            $this->selects = ['*'];
+        }
+
+        $propertyColumnMap = PropertyColumnMapper::map($this->model);
+        $sql = 'SELECT %s ';
+        $selects = array_map(function ($select) use ($propertyColumnMap) {
+            if ($select === '*') {
+                return sprintf('%s.*', $this->alias);
+            }
+
+            if (isset($propertyColumnMap[$select])) {
+                return sprintf('%s.%s AS %s_%s', $this->alias, $propertyColumnMap[$select], $this->alias, $select);
+            }
+
+            if (in_array($select, array_values($propertyColumnMap))) {
+                return sprintf('%s.%s', $this->alias, $select);
+            }
+
+            if (str_contains($select, '.')) {
+                $alias = explode('.', $select)[0];
+                $column = explode('.', $select)[1];
+
+                if ($alias === $this->alias) {
+                    if (isset($propertyColumnMap[$column])) {
+                        return sprintf('%s.%s AS %s_%s', $alias, $propertyColumnMap[$column], $alias, $column);
+                    }
+                }
+            }
+
+            foreach ($this->innerJoins as $join) {
+                if ($select === $join['alias']) {
+                    return sprintf('%s.*', $join['alias']);
+                }
+            }
+
+            return $select;
+        }, $this->selects);
+
+        return sprintf($sql, implode(', ', $selects));
+    }
+
+    private function getFromQueryStringPartial(): string
+    {
+        return sprintf(
+            'FROM %s.%s %s',
+            $this->schema,
+            $this->table,
+            $this->alias
+        );
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    private function getInnerJoinQueryStringPartial(): string
+    {
+        $sql = '';
+
+        foreach ($this->innerJoins as $join) {
+            $model = $join['model'];
+
+            if (!is_subclass_of($model, LoomModel::class)) {
+                continue;
+            }
+
+            $conditions = array_map(function ($condition) {
+                $splitCondition = explode(' ', $condition);
+                $finalCondition = '';
+
+                foreach ($splitCondition as $conditionPart) {
+                    if (!str_contains($conditionPart, '.')) {
+                        $finalCondition .= sprintf(' %s ', $conditionPart);
+                        continue;
+                    }
+
+                    $alias = explode('.', $conditionPart)[0];
+                    $column = explode('.', $conditionPart)[1];
+
+                    if ($alias === $this->alias) {
+                        $propertyColumnMap = PropertyColumnMapper::map($this->model);
+
+                        if (isset($propertyColumnMap[$column])) {
+                            $finalCondition .= sprintf('%s.%s', $this->alias, $propertyColumnMap[$column]);
+                        }
+
+                        if (in_array($column, array_values($propertyColumnMap))) {
+                            $finalCondition .= sprintf('%s.%s', $this->alias, $column);
+                        }
+                    }
+
+                    foreach ($this->innerJoins as $innerJoin) {
+                        if ($alias === $innerJoin['alias']) {
+                            $propertyColumnMap = PropertyColumnMapper::map($innerJoin['model']);
+
+                            if (isset($propertyColumnMap[$column])) {
+                                $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $propertyColumnMap[$column]);
+                            }
+
+                            if (in_array($column, array_values($propertyColumnMap))) {
+                                $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $column);
+                            }
+                        }
+                    }
+                }
+
+                return $finalCondition;
+            }, $join['conditions']);
+
+            $sql .= sprintf(
+                ' INNER JOIN %s.%s %s ON %s',
+                $model::getSchemaName(),
+                $model::getTableName(),
+                $join['alias'],
+                implode(' AND ', $conditions)
+            );
+        }
+
+        return $sql;
+    }
+}
