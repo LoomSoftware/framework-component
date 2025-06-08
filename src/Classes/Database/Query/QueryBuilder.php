@@ -50,7 +50,7 @@ class QueryBuilder
         return $this;
     }
 
-    public function where(string $columnOrProperty, string $value): static
+    public function where(string $columnOrProperty, mixed $value): static
     {
         $this->wheres[] = [$columnOrProperty, $value];
 
@@ -254,19 +254,11 @@ class QueryBuilder
                     $propertyColumnMap = PropertyColumnMapper::map($this->model);
 
                     if (isset($propertyColumnMap[$column])) {
-                        if (is_string($value)) {
-                            $whereStrings[] = sprintf('%s.%s = \'%s\'', $this->alias, $propertyColumnMap[$column], $value);
-                        } else {
-                            $whereStrings[] = sprintf('%s.%s = %s', $this->alias, $propertyColumnMap[$column], $value);
-                        }
+                        $whereStrings[] = $this->addWhereString($this->alias, $propertyColumnMap[$column], $value);
                     }
 
                     if (in_array($column, array_values($propertyColumnMap))) {
-                        if (is_string($value)) {
-                            $whereStrings[] = sprintf('%s.%s = \'%s\'', $this->alias, $column, $value);
-                        } else {
-                            $whereStrings[] = sprintf('%s.%s = %s', $this->alias, $column, $value);
-                        }
+                        $whereStrings[] = $this->addWhereString($this->alias, $column, $value);
                     }
                 } else {
                     foreach ($this->innerJoins as $join) {
@@ -274,19 +266,11 @@ class QueryBuilder
                             $propertyColumnMap = PropertyColumnMapper::map($join['model']);
 
                             if (isset($propertyColumnMap[$column])) {
-                                if (is_string($value)) {
-                                    $whereStrings[] = sprintf('%s.%s = \'%s\'', $join['alias'], $propertyColumnMap[$column], $value);
-                                } else {
-                                    $whereStrings[] = sprintf('%s.%s = %s', $join['alias'], $propertyColumnMap[$column], $value);
-                                }
+                                $whereStrings[] = $this->addWhereString($join['alias'], $propertyColumnMap[$column], $value);
                             }
 
                             if (in_array($column, array_values($propertyColumnMap))) {
-                                if (is_string($value)) {
-                                    $whereStrings[] = sprintf('%s.%s = \'%s\'', $join['alias'], $column, $value);
-                                } else {
-                                    $whereStrings[] = sprintf('%s.%s = %s', $join['alias'], $column, $value);
-                                }
+                                $whereStrings[] = $this->addWhereString($join['alias'], $column, $value);
                             }
                         }
                     }
@@ -297,5 +281,18 @@ class QueryBuilder
         return count($whereStrings)
             ? sprintf(' WHERE %s', implode(' AND ', $whereStrings))
             : '';
+    }
+
+    private function addWhereString(string $alias, string $column, mixed $value): string
+    {
+        if (is_string($value)) {
+            return sprintf('%s.%s = \'%s\'', $alias, $column, $value);
+        } elseif (is_numeric($value)) {
+            return sprintf('%s.%s = %s', $alias, $column, $value);
+        } elseif (is_bool($value)) {
+            return sprintf('%s.%s = %s', $alias, $column, (int) $value);
+        }
+
+        return '';
     }
 }

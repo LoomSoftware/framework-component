@@ -43,7 +43,7 @@ abstract class LoomModel
         return $this;
     }
 
-    public function where(string $columnOrProperty, string $value): static
+    public function where(string $columnOrProperty, mixed $value): static
     {
         if (!$this->queryBuilder) {
             return $this;
