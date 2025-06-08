@@ -67,6 +67,8 @@ class QueryBuilder
         $queryString .= $this->getInnerJoinQueryStringPartial();
         $queryString .= $this->getWhereQueryStringPartial();
 
+        var_dump($queryString);
+
         return $queryString;
     }
 
