@@ -13,6 +13,8 @@ class QueryBuilder
     private string $table;
     private array $selects = [];
     private array $innerJoins = [];
+    private array $leftJoins = [];
+    private array $wheres = [];
 
     /**
      * @throws \Exception
@@ -69,8 +71,14 @@ class QueryBuilder
      */
     private function getSelectQueryStringPartial(): string
     {
+        $joinSelects = null;
+
         if (empty($this->selects)) {
             $this->selects = ['*'];
+
+            $joinSelects = array_map(function ($join) {
+                return sprintf('%s.*', $join['alias']);
+            }, $this->innerJoins);
         }
 
         $propertyColumnMap = PropertyColumnMapper::map($this->model);
@@ -111,6 +119,10 @@ class QueryBuilder
 
             return $select;
         }, $this->selects);
+
+        if ($joinSelects) {
+            $selects = array_merge($selects, $joinSelects);
+        }
 
         return sprintf($sql, implode(', ', $selects));
     }

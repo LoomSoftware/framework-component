@@ -74,6 +74,14 @@ class QueryBuilderTest extends TestCase
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p.id'])->innerJoin(StandardModel::class, 'sm', ['p.sm = sm.id']),
                 'expected' => 'SELECT p.intPackageId AS p_id FROM Application.tblPackage p',
             ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
+                'expected' => 'SELECT p.*, pt.* FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p', 'pt'])->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
+                'expected' => 'SELECT p.*, pt.* FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
+            ],
         ];
     }
 }
