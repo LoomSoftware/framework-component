@@ -14,6 +14,7 @@ class QueryBuilder
     private array $selects = [];
     private array $innerJoins = [];
     private array $wheres = [];
+    private array $parameters = [];
 
     /**
      * @throws \Exception
@@ -78,6 +79,11 @@ class QueryBuilder
     public function getJoins(): array
     {
         return $this->innerJoins;
+    }
+
+    public function getParameters(): array
+    {
+        return $this->parameters;
     }
 
     /**
@@ -276,6 +282,8 @@ class QueryBuilder
                     }
                 }
             }
+
+            $this->parameters[] = $value;
         }
 
         return count($whereStrings)
@@ -286,11 +294,11 @@ class QueryBuilder
     private function addWhereString(string $alias, string $column, mixed $value): string
     {
         if (is_string($value)) {
-            return sprintf('%s.%s = \'%s\'', $alias, $column, $value);
+            return sprintf('%s.%s = ?', $alias, $column);
         } elseif (is_numeric($value)) {
-            return sprintf('%s.%s = %s', $alias, $column, $value);
+            return sprintf('%s.%s = ?', $alias, $column);
         } elseif (is_bool($value)) {
-            return sprintf('%s.%s = %s', $alias, $column, (int) $value);
+            return sprintf('%s.%s = ?', $alias, $column);
         }
 
         return '';

@@ -32,9 +32,10 @@ class QueryBuilderTest extends TestCase
      * @throws \ReflectionException
      */
     #[DataProvider('queryBuilderDataProvider')]
-    public function testGetQueryString(QueryBuilder $queryBuilder, string $expected): void
+    public function testGetQueryString(QueryBuilder $queryBuilder, string $expected, array $parameters = []): void
     {
         self::assertEquals($expected, $queryBuilder->getQueryString());
+        self::assertEquals($parameters, $queryBuilder->getParameters());
     }
 
     public function testSelectAndInnerJoinAreCovered(): void
@@ -50,38 +51,46 @@ class QueryBuilderTest extends TestCase
     public static function queryBuilderDataProvider(): array
     {
         return [
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p'),
+//                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType FROM Application.tblPackage p',
+//            ],
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['id', 'name']),
+//                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name FROM Application.tblPackage p',
+//            ],
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['intPackageId', 'name']),
+//                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name FROM Application.tblPackage p',
+//            ],
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p.id', 'pt'])->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
+//                'expected' => 'SELECT p.intPackageId AS p_id, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
+//            ],
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select()->innerJoin(PackageType::class, 'pt', ['p.intPackageTypeId = pt.intPackageTypeId']),
+//                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
+//            ],
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p.id'])->innerJoin(StandardModel::class, 'sm', ['p.sm = sm.id']),
+//                'expected' => 'SELECT p.intPackageId AS p_id FROM Application.tblPackage p',
+//            ],
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p')->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
+//                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
+//            ],
+//            [
+//                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p', 'pt'])->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
+//                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
+//            ],
             [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p'),
-                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType FROM Application.tblPackage p',
-            ],
-            [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['id', 'name']),
-                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name FROM Application.tblPackage p',
-            ],
-            [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['intPackageId', 'name']),
-                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name FROM Application.tblPackage p',
-            ],
-            [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p.id', 'pt'])->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
-                'expected' => 'SELECT p.intPackageId AS p_id, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
-            ],
-            [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select()->innerJoin(PackageType::class, 'pt', ['p.intPackageTypeId = pt.intPackageTypeId']),
-                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
-            ],
-            [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p.id'])->innerJoin(StandardModel::class, 'sm', ['p.sm = sm.id']),
-                'expected' => 'SELECT p.intPackageId AS p_id FROM Application.tblPackage p',
-            ],
-            [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p')->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
-                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
-            ],
-            [
-                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p', 'pt'])->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
-                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId',
-            ],
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')
+                    ->select()
+                    ->innerJoin(PackageType::class, 'pt', ['p.intPackageTypeId = pt.intPackageTypeId'])
+                    ->where('pt.name', 'Package Type A'),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId WHERE pt.strPackageTypeName = ?',
+                'parameters' => ['Package Type A'],
+            ]
         ];
     }
 }
