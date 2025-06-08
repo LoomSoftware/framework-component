@@ -13,8 +13,6 @@ class QueryBuilder
     private string $table;
     private array $selects = [];
     private array $innerJoins = [];
-    private array $leftJoins = [];
-    private array $wheres = [];
 
     /**
      * @throws \Exception
@@ -60,10 +58,17 @@ class QueryBuilder
         $queryString .= $this->getFromQueryStringPartial();
         $queryString .= $this->getInnerJoinQueryStringPartial();
 
-        $this->selects = [];
-        $this->innerJoins = [];
-
         return $queryString;
+    }
+
+    public function getAlias(): string
+    {
+        return $this->alias;
+    }
+
+    public function getJoins(): array
+    {
+        return $this->innerJoins;
     }
 
     /**

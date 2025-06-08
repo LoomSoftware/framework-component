@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Loom\FrameworkComponent\TestData\Database\Model;
 
-use Data\Database\Model\PackageType;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
 use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
