@@ -90,7 +90,25 @@ class QueryBuilderTest extends TestCase
                     ->where('pt.name', 'Package Type A'),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId WHERE pt.strPackageTypeName = ?',
                 'parameters' => ['Package Type A'],
-            ]
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')
+                    ->select()
+                    ->innerJoin(PackageType::class, 'pt', ['p.intPackageTypeId = pt.intPackageTypeId'])
+                    ->where('pt.strPackageTypeName', 'Package Type A'),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId WHERE pt.strPackageTypeName = ?',
+                'parameters' => ['Package Type A'],
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['id'])->where('p.name', 'Package B'),
+                'expected' => 'SELECT p.intPackageId AS p_id FROM Application.tblPackage p WHERE p.strPackageName = ?',
+                'parameters' => ['Package B'],
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['id'])->where('p.strPackageName', 'Package B'),
+                'expected' => 'SELECT p.intPackageId AS p_id FROM Application.tblPackage p WHERE p.strPackageName = ?',
+                'parameters' => ['Package B'],
+            ],
         ];
     }
 }

@@ -167,12 +167,7 @@ class QueryBuilder
 
     private function getFromQueryStringPartial(): string
     {
-        return sprintf(
-            'FROM %s.%s %s',
-            $this->schema,
-            $this->table,
-            $this->alias
-        );
+        return sprintf('FROM %s.%s %s', $this->schema, $this->table, $this->alias);
     }
 
     /**
@@ -260,24 +255,24 @@ class QueryBuilder
                     $propertyColumnMap = PropertyColumnMapper::map($this->model);
 
                     if (isset($propertyColumnMap[$column])) {
-                        $whereStrings[] = $this->addWhereString($this->alias, $propertyColumnMap[$column], $value);
+                        $whereStrings[] = $this->addWhereString($this->alias, $propertyColumnMap[$column]);
                     }
 
                     if (in_array($column, array_values($propertyColumnMap))) {
-                        $whereStrings[] = $this->addWhereString($this->alias, $column, $value);
+                        $whereStrings[] = $this->addWhereString($this->alias, $column);
                     }
-                } else {
-                    foreach ($this->innerJoins as $join) {
-                        if ($alias === $join['alias']) {
-                            $propertyColumnMap = PropertyColumnMapper::map($join['model']);
+                }
 
-                            if (isset($propertyColumnMap[$column])) {
-                                $whereStrings[] = $this->addWhereString($join['alias'], $propertyColumnMap[$column], $value);
-                            }
+                foreach ($this->innerJoins as $join) {
+                    if ($alias === $join['alias']) {
+                        $propertyColumnMap = PropertyColumnMapper::map($join['model']);
 
-                            if (in_array($column, array_values($propertyColumnMap))) {
-                                $whereStrings[] = $this->addWhereString($join['alias'], $column, $value);
-                            }
+                        if (isset($propertyColumnMap[$column])) {
+                            $whereStrings[] = $this->addWhereString($join['alias'], $propertyColumnMap[$column]);
+                        }
+
+                        if (in_array($column, array_values($propertyColumnMap))) {
+                            $whereStrings[] = $this->addWhereString($join['alias'], $column);
                         }
                     }
                 }
@@ -291,7 +286,7 @@ class QueryBuilder
             : '';
     }
 
-    private function addWhereString(string $alias, string $column, mixed $value): string
+    private function addWhereString(string $alias, string $column): string
     {
         return sprintf('%s.%s = ?', $alias, $column);
     }
