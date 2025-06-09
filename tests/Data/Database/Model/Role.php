@@ -10,20 +10,17 @@ use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 use Loom\FrameworkComponent\Classes\Database\LoomModel;
 
-#[Schema(name: 'Application')]
-#[Table(name: 'tblPackage')]
-class Package extends LoomModel
+#[Schema(name: 'Security')]
+#[Table(name: 'ublRole')]
+class Role extends LoomModel
 {
     #[ID]
-    #[Column(name: 'intPackageId')]
+    #[Column(name: 'intRoleId')]
     protected int $id;
 
-    #[Column(name: 'strPackageName')]
+    #[Column(name: 'strRoleName')]
     protected string $name;
 
-    #[Column(name: 'intPackageTypeId')]
-    protected PackageType $packageType;
-
-    #[Column(name: 'intOwnerId')]
-    protected User $owner;
+    #[Column(name: 'strRoleHandle')]
+    protected string $handle;
 }

@@ -14,6 +14,7 @@ abstract class LoomModel
 {
     protected static ?DatabaseConnection $databaseConnection = null;
     protected ?QueryBuilder $queryBuilder = null;
+    private ?array $propertyColumnMap = null;
 
     public function __construct()
     {
@@ -69,23 +70,8 @@ abstract class LoomModel
 
         if ($query) {
             $query->execute($this->queryBuilder->getParameters());
-
-            $queryResults = $query->fetchAll();
-
-            $queryMap = [];
+            $queryMap = $this->mapQueryResultsWithAlias($query->fetchAll());
             $output = [];
-
-            foreach ($queryResults as $queryResult) {
-                $resultMap = [];
-
-                foreach ($queryResult as $column => $value) {
-                    $splitColumn = explode('_', $column);
-
-                    $resultMap[$splitColumn[0]][$splitColumn[1]] = $value;
-                }
-
-                $queryMap[] = $resultMap;
-            }
 
             foreach ($queryMap as $resultRow) {
                 $modelInstance = new static;
@@ -95,89 +81,7 @@ abstract class LoomModel
                         continue;
                     }
 
-                    $propertyColumnMap = PropertyColumnMapper::map(static::class);
-                    $reflectionClass = new \ReflectionClass(static::class);
-
-                    if ($model === $this->queryBuilder->getAlias()) {
-                        foreach ($propertyColumnMap as $property => $column) {
-                            if (!$reflectionClass->hasProperty($property)) {
-                                continue;
-                            }
-
-                            $reflectionProperty = $reflectionClass->getProperty($property);
-
-                            if (is_subclass_of($reflectionProperty->getType()->getName(), LoomModel::class)) {
-                                continue;
-                            }
-
-                            $columnData = $modelData[$column] ?? $modelData[$property] ?? null;
-
-                            if (!$columnData) {
-                                continue;
-                            }
-
-                            if ($reflectionProperty->getType()->getName() === \DateTimeInterface::class) {
-                                $columnData = new \DateTime($columnData);
-                            }
-
-                            if ($reflectionProperty->getType()->getName() === 'bool') {
-                                $columnData = (bool) $columnData;
-                            }
-
-                            $modelInstance->$property = $columnData;
-                        }
-                    } else {
-                        $staticReflectionClass = new \ReflectionClass(static::class);
-
-                        foreach ($this->queryBuilder->getJoins() as $join) {
-                            if ($join['alias'] !== $model) {
-                                continue;
-                            }
-
-                            foreach ($join['conditions'] as $condition) {
-                                $splitCondition = explode(' ', $condition);
-
-                                foreach ($splitCondition as $conditionPart) {
-                                    if (!str_contains($conditionPart, '.')) {
-                                        continue;
-                                    }
-
-                                    $splitConditionPart = explode('.', $conditionPart);
-
-                                    $splitConditionAlias = $splitConditionPart[0];
-
-                                    if ($splitConditionAlias !== $this->queryBuilder->getAlias()) {
-                                        continue;
-                                    }
-
-                                    $splitConditionColumn = $splitConditionPart[1];
-
-                                    foreach ($propertyColumnMap as $property => $column) {
-                                        if ($staticReflectionClass->getProperty($property)->getType()->getName() !== $join['model']) {
-                                            continue;
-                                        }
-
-                                        if ($splitConditionColumn === $column || $splitConditionColumn === $property) {
-                                            $joinInstance = new $join['model'];
-                                            $joinModelPropertyColumnMap = PropertyColumnMapper::map($join['model']);
-
-                                            foreach ($joinModelPropertyColumnMap as $joinProperty => $joinColumn) {
-                                                if (isset($modelData[$joinColumn])) {
-                                                    $joinInstance->$joinProperty = $modelData[$joinColumn];
-                                                }
-
-                                                if (isset($modelData[$joinProperty])) {
-                                                    $joinInstance->$joinProperty = $modelData[$joinProperty];
-                                                }
-                                            }
-
-                                            $modelInstance->$property = $joinInstance;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    $modelInstance = $this->mapToModel($model, $modelData, $modelInstance);
                 }
 
                 $output[] = $modelInstance;
@@ -220,5 +124,127 @@ abstract class LoomModel
         );
 
         return $tableName && is_string($tableName) ? $tableName : null;
+    }
+
+    private function mapToModel(string $alias, array $modelData, LoomModel $modelInstance): LoomModel
+    {
+        if ($alias === $this->queryBuilder->getAlias()) {
+            $reflectionClass = new \ReflectionClass(static::class);
+
+            foreach ($modelData as $property => $value) {
+                if (!$reflectionClass->hasProperty($property)) {
+                    continue;
+                }
+
+                try {
+                    $value = $this->convertDatabaseValueToProperty($reflectionClass, $property, $value);
+
+                    $modelInstance->$property = $value;
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+
+            return $modelInstance;
+        }
+
+        foreach ($this->queryBuilder->getJoins() as $join) {
+            if ($alias !== $join['alias']) {
+                continue;
+            }
+
+            foreach ($join['conditions'] as $condition) {
+                foreach (explode(' ', $condition) as $conditionPart) {
+                    if (!str_contains($conditionPart, '.')) {
+                        continue;
+                    }
+
+                    $conditionAlias = explode('.', $conditionPart)[0];
+
+                    if ($conditionAlias !== $this->queryBuilder->getAlias()) {
+                        continue;
+                    }
+
+                    $conditionColumn = explode('.', $conditionPart)[1];
+
+
+                    $joinInstance = new $join['model'];
+                    $joinReflectionClass = new \ReflectionClass($join['model']);
+                    $joinModelPropertyColumnMap = PropertyColumnMapper::map($join['model']);
+
+                    foreach ($joinModelPropertyColumnMap as $joinProperty => $joinColumn) {
+                        $returnDataColumnValue = $modelData[$joinColumn] ?? $modelData[$joinProperty] ?? null;
+
+                        if (!$returnDataColumnValue) {
+                            continue;
+                        }
+
+                        try {
+                            $value = $this->convertDatabaseValueToProperty($joinReflectionClass, $joinProperty, $returnDataColumnValue);
+
+                            $joinInstance->$joinProperty = $value;
+                        } catch (\Exception $e) {
+                            continue;
+                        }
+                    }
+
+                    $modelInstance->$conditionColumn = $joinInstance;
+                }
+            }
+        }
+
+        return $modelInstance;
+    }
+
+    /**
+     * @throws \DateMalformedStringException|\ReflectionException
+     */
+    private function convertDatabaseValueToProperty(\ReflectionClass $class, string $property, string|int $value)
+    {
+        $reflectionProperty = $class->getProperty($property);
+
+        if (is_subclass_of($reflectionProperty->getType()->getName(), LoomModel::class)) {
+            throw new \Exception('Skip');
+        }
+
+        if ($reflectionProperty->getType()->getName() === \DateTimeInterface::class) {
+            $value = new \DateTime($value);
+        }
+
+        if ($reflectionProperty->getType()->getName() === 'bool') {
+            $value = (bool) $value;
+        }
+
+        return $value;
+    }
+
+    private function getPropertyColumnMap(): array
+    {
+        if ($this->propertyColumnMap) {
+            return $this->propertyColumnMap;
+        }
+
+        $this->propertyColumnMap = PropertyColumnMapper::map(static::class);
+
+        return $this->propertyColumnMap;
+    }
+
+    private function mapQueryResultsWithAlias(array $rawResults): array
+    {
+        $map = [];
+
+        foreach ($rawResults as $rawResult) {
+            $resultMap = [];
+
+            foreach ($rawResult as $column => $value) {
+                $splitColumn = explode('_', $column);
+
+                $resultMap[$splitColumn[0]][$splitColumn[1]] = $value;
+            }
+
+            $map[] = $resultMap;
+        }
+
+        return $map;
     }
 }

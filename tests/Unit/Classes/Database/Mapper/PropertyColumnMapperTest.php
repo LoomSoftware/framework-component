@@ -36,6 +36,7 @@ class PropertyColumnMapperTest extends TestCase
                     'id' => 'intPackageId',
                     'name' => 'strPackageName',
                     'packageType' => 'intPackageTypeId',
+                    'owner' => 'intOwnerId',
                 ],
             ],
         ];
