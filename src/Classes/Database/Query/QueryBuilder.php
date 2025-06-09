@@ -184,59 +184,62 @@ class QueryBuilder
                 continue;
             }
 
-            $conditions = array_map(function ($condition) {
-                $splitCondition = explode(' ', $condition);
-                $finalCondition = '';
-
-                foreach ($splitCondition as $conditionPart) {
-                    if (!str_contains($conditionPart, '.')) {
-                        $finalCondition .= sprintf(' %s ', $conditionPart);
-                        continue;
-                    }
-
-                    $alias = explode('.', $conditionPart)[0];
-                    $column = explode('.', $conditionPart)[1];
-
-                    if ($alias === $this->alias) {
-                        $propertyColumnMap = PropertyColumnMapper::map($this->model);
-
-                        if (isset($propertyColumnMap[$column])) {
-                            $finalCondition .= sprintf('%s.%s', $this->alias, $propertyColumnMap[$column]);
-                        }
-
-                        if (in_array($column, array_values($propertyColumnMap))) {
-                            $finalCondition .= sprintf('%s.%s', $this->alias, $column);
-                        }
-                    }
-
-                    foreach ($this->innerJoins as $innerJoin) {
-                        if ($alias === $innerJoin['alias']) {
-                            $propertyColumnMap = PropertyColumnMapper::map($innerJoin['model']);
-
-                            if (isset($propertyColumnMap[$column])) {
-                                $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $propertyColumnMap[$column]);
-                            }
-
-                            if (in_array($column, array_values($propertyColumnMap))) {
-                                $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $column);
-                            }
-                        }
-                    }
-                }
-
-                return $finalCondition;
-            }, $join['conditions']);
-
             $sql .= sprintf(
                 ' INNER JOIN %s.%s %s ON %s',
                 $model::getSchemaName(),
                 $model::getTableName(),
                 $join['alias'],
-                implode(' AND ', $conditions)
+                implode(' AND ', $this->parseJoinConditions($join['conditions']))
             );
         }
 
         return $sql;
+    }
+
+    private function parseJoinConditions(array $conditions): array
+    {
+        return array_map(function ($condition) {
+            $splitCondition = explode(' ', $condition);
+            $finalCondition = '';
+
+            foreach ($splitCondition as $conditionPart) {
+                if (!str_contains($conditionPart, '.')) {
+                    $finalCondition .= sprintf(' %s ', $conditionPart);
+                    continue;
+                }
+
+                $alias = explode('.', $conditionPart)[0];
+                $column = explode('.', $conditionPart)[1];
+
+                if ($alias === $this->alias) {
+                    $propertyColumnMap = PropertyColumnMapper::map($this->model);
+
+                    if (isset($propertyColumnMap[$column])) {
+                        $finalCondition .= sprintf('%s.%s', $this->alias, $propertyColumnMap[$column]);
+                    }
+
+                    if (in_array($column, array_values($propertyColumnMap))) {
+                        $finalCondition .= sprintf('%s.%s', $this->alias, $column);
+                    }
+                }
+
+                foreach ($this->innerJoins as $innerJoin) {
+                    if ($alias === $innerJoin['alias']) {
+                        $propertyColumnMap = PropertyColumnMapper::map($innerJoin['model']);
+
+                        if (isset($propertyColumnMap[$column])) {
+                            $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $propertyColumnMap[$column]);
+                        }
+
+                        if (in_array($column, array_values($propertyColumnMap))) {
+                            $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $column);
+                        }
+                    }
+                }
+            }
+
+            return $finalCondition;
+        }, $conditions);
     }
 
     private function getWhereQueryStringPartial(): string
