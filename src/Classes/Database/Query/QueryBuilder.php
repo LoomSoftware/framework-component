@@ -58,17 +58,19 @@ class QueryBuilder
         return $this;
     }
 
-    /**
-     * @throws \ReflectionException
-     */
     public function getQueryString(): string
     {
-        $queryString = $this->getSelectQueryStringPartial();
-        $queryString .= $this->getFromQueryStringPartial();
-        $queryString .= $this->getInnerJoinQueryStringPartial();
-        $queryString .= $this->getWhereQueryStringPartial();
+        try {
+            $queryString = $this->getSelectQueryStringPartial();
+            $queryString .= $this->getFromQueryStringPartial();
+            $queryString .= $this->getInnerJoinQueryStringPartial();
+            $queryString .= $this->getWhereQueryStringPartial();
 
-        return $queryString;
+            var_dump($queryString);
+            return $queryString;
+        } catch (\Exception $exception) {
+            return '';
+        }
     }
 
     public function getAlias(): string

@@ -26,4 +26,24 @@ class User extends LoomModel
 
     #[Column(name: 'intRoleId')]
     protected Role $role;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function getRole(): Role
+    {
+        return $this->role;
+    }
 }

@@ -26,4 +26,24 @@ class Package extends LoomModel
 
     #[Column(name: 'intOwnerId')]
     protected User $owner;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getPackageType(): PackageType
+    {
+        return $this->packageType;
+    }
+
+    public function getOwner(): User
+    {
+        return $this->owner;
+    }
 }
