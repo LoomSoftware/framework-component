@@ -9,6 +9,7 @@ use Loom\FrameworkComponent\Classes\Database\DatabaseConnection;
 use Loom\FrameworkComponent\Classes\Database\Query\QueryBuilder;
 use Loom\FrameworkComponent\TestData\Database\Model\Package;
 use Loom\FrameworkComponent\TestData\Database\Model\PackageType;
+use Loom\FrameworkComponent\TestData\Database\Model\Role;
 use Loom\FrameworkComponent\TestData\Database\Model\User;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -55,6 +56,10 @@ class QueryBuilderTest extends TestCase
             [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p'),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner FROM Application.tblPackage p',
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->orderBy('p.id', 'DESC'),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner FROM Application.tblPackage p ORDER BY p.intPackageId DESC',
             ],
             [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['id', 'name']),
@@ -113,6 +118,10 @@ class QueryBuilderTest extends TestCase
             [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->select()->innerJoin(User::class, 'u', ['p.owner = u.id']),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, u.intUserId AS u_id, u.strUsername AS u_username, u.strEmail AS u_email, u.intRoleId AS u_role FROM Application.tblPackage p INNER JOIN Security.tblUser u ON p.intOwnerId = u.intUserId',
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select()->innerJoin(User::class, 'u', ['p.owner = u.id'])->innerJoin(Role::class, 'r', ['u.role = r.id']),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, u.intUserId AS u_id, u.strUsername AS u_username, u.strEmail AS u_email, u.intRoleId AS u_role, r.intRoleId AS r_id, r.strRoleName AS r_name, r.strRoleHandle AS r_handle FROM Application.tblPackage p INNER JOIN Security.tblUser u ON p.intOwnerId = u.intUserId INNER JOIN Security.ublRole r ON u.intRoleId = r.intRoleId',
             ],
         ];
     }

@@ -15,6 +15,7 @@ class QueryBuilder
     private array $innerJoins = [];
     private array $wheres = [];
     private array $parameters = [];
+    private array $orderBys = [];
 
     /**
      * @throws \Exception
@@ -58,6 +59,13 @@ class QueryBuilder
         return $this;
     }
 
+    public function orderBy(string $column, string $direction = 'ASC'): static
+    {
+        $this->orderBys[] = [$column, $direction];
+
+        return $this;
+    }
+
     public function getQueryString(): string
     {
         try {
@@ -65,6 +73,7 @@ class QueryBuilder
             $queryString .= $this->getFromQueryStringPartial();
             $queryString .= $this->getInnerJoinQueryStringPartial();
             $queryString .= $this->getWhereQueryStringPartial();
+            $queryString .= $this->getOrderByQueryStringPartial();
 
             return $queryString;
         } catch (\Exception $exception) {
@@ -287,6 +296,51 @@ class QueryBuilder
 
         return count($whereStrings)
             ? sprintf(' WHERE %s', implode(' AND ', $whereStrings))
+            : '';
+    }
+
+    private function getOrderByQueryStringPartial(): string
+    {
+        $orderByStrings = [];
+
+        foreach ($this->orderBys as $orderBy) {
+            $column = $orderBy[0];
+            $direction = $orderBy[1];
+
+            if (str_contains($column, '.')) {
+                $alias = explode('.', $column)[0];
+                $columnName = explode('.', $column)[1];
+
+                if ($alias === $this->alias) {
+                    $propertyColumnMap = PropertyColumnMapper::map($this->model);
+
+                    if (isset($propertyColumnMap[$columnName])) {
+                        $orderByStrings[] = sprintf('%s.%s %s', $this->alias, $propertyColumnMap[$columnName], $direction);
+                    }
+
+                    if (in_array($columnName, array_values($propertyColumnMap))) {
+                        $orderByStrings[] = sprintf('%s.%s %s', $this->alias, $columnName, $direction);
+                    }
+                } else {
+                    foreach ($this->innerJoins as $join) {
+                        if ($alias === $join['alias']) {
+                            $propertyColumnMap = PropertyColumnMapper::map($join['model']);
+
+                            if (isset($propertyColumnMap[$columnName])) {
+                                $orderByStrings[] = sprintf('%s.%s %s', $join['alias'], $propertyColumnMap[$columnName], $direction);
+                            }
+
+                            if (in_array($columnName, array_values($propertyColumnMap))) {
+                                $orderByStrings[] = sprintf('%s.%s %s', $join['alias'], $columnName, $direction);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return count($orderByStrings)
+            ? sprintf(' ORDER BY %s', implode(', ', $orderByStrings))
             : '';
     }
 

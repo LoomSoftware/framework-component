@@ -60,6 +60,17 @@ abstract class LoomModel
         return $this;
     }
 
+    public function orderBy(string $column, string $direction = 'ASC'): static
+    {
+        if (!$this->queryBuilder) {
+            return $this;
+        }
+
+        $this->queryBuilder->orderBy($column, $direction);
+
+        return $this;
+    }
+
     /**
      * @return static[]
      */
