@@ -32,7 +32,8 @@ CREATE TABLE tblUser (
 INSERT INTO tblUser
     (strUsername, strEmail)
 VALUES
-    ('Test User', 'testuser@test.com');
+    ('Test User', 'testuser@test.com'),
+    ('Test User 2', 'testuser2@test.com');
 
 USE Application;
 
@@ -68,7 +69,7 @@ INSERT INTO tblPackage
 VALUES
     ('Package A', @packageTypeA, 1),
     ('Package B', @packageTypeA, 1),
-    ('Package C', @packageTypeA, 1),
+    ('Package C', @packageTypeA, 2),
     ('Package D', @packageTypeB, 1),
     ('Package E', @packageTypeB, 1),
     ('Package F', @packageTypeB, 1),
