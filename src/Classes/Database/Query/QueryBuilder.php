@@ -16,6 +16,7 @@ class QueryBuilder
     private array $wheres = [];
     private array $parameters = [];
     private array $orderBys = [];
+    private ?int $limit = null;
 
     /**
      * @throws \Exception
@@ -66,6 +67,13 @@ class QueryBuilder
         return $this;
     }
 
+    public function limit(int $limit): static
+    {
+        $this->limit = $limit;
+
+        return $this;
+    }
+
     public function getQueryString(): string
     {
         try {
@@ -74,6 +82,7 @@ class QueryBuilder
             $queryString .= $this->getInnerJoinQueryStringPartial();
             $queryString .= $this->getWhereQueryStringPartial();
             $queryString .= $this->getOrderByQueryStringPartial();
+            $queryString .= $this->getLimitQueryStringPartial();
 
             return $queryString;
         } catch (\Exception $exception) {
@@ -341,6 +350,13 @@ class QueryBuilder
 
         return count($orderByStrings)
             ? sprintf(' ORDER BY %s', implode(', ', $orderByStrings))
+            : '';
+    }
+
+    private function getLimitQueryStringPartial(): string
+    {
+        return $this->limit
+            ? sprintf(' LIMIT %d', $this->limit)
             : '';
     }
 
