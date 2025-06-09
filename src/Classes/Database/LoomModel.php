@@ -71,6 +71,17 @@ abstract class LoomModel
         return $this;
     }
 
+    public function limit(int $limit): static
+    {
+        if (!$this->queryBuilder) {
+            return $this;
+        }
+
+        $this->queryBuilder->limit($limit);
+
+        return $this;
+    }
+
     /**
      * @return static[]
      */
