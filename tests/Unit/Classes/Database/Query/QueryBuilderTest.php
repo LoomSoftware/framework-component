@@ -63,6 +63,11 @@ class QueryBuilderTest extends TestCase
                 'parameters' => ['Package Type A', 'Package Type B'],
             ],
             [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id'])->whereNotIn('pt.name', ['Package Type A', 'Package Type B']),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId WHERE pt.strPackageTypeName NOT IN (?, ?)',
+                'parameters' => ['Package Type A', 'Package Type B'],
+            ],
+            [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->orderBy('p.id', 'DESC'),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner FROM Application.tblPackage p ORDER BY p.intPackageId DESC',
             ],
@@ -109,6 +114,14 @@ class QueryBuilderTest extends TestCase
                     ->innerJoin(PackageType::class, 'pt', ['p.intPackageTypeId = pt.intPackageTypeId'])
                     ->where('pt.name', 'Package Type A'),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId WHERE pt.strPackageTypeName = ?',
+                'parameters' => ['Package Type A'],
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')
+                    ->select()
+                    ->innerJoin(PackageType::class, 'pt', ['p.intPackageTypeId = pt.intPackageTypeId'])
+                    ->whereNot('pt.name', 'Package Type A'),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId WHERE pt.strPackageTypeName != ?',
                 'parameters' => ['Package Type A'],
             ],
             [
