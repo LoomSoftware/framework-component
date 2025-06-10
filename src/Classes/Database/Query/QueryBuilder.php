@@ -13,6 +13,7 @@ class QueryBuilder
     private string $table;
     private array $selects = [];
     private array $innerJoins = [];
+    private array $leftJoins = [];
     private array $wheres = [];
     private array $whereNots = [];
     private array $whereIns = [];
@@ -48,6 +49,17 @@ class QueryBuilder
     public function innerJoin(string $model, string $alias, array $conditions): static
     {
         $this->innerJoins[] = [
+            'model' => $model,
+            'alias' => $alias,
+            'conditions' => $conditions,
+        ];
+
+        return $this;
+    }
+
+    public function leftJoin(string $model, string $alias, array $conditions): static
+    {
+        $this->leftJoins[] = [
             'model' => $model,
             'alias' => $alias,
             'conditions' => $conditions,
@@ -104,6 +116,7 @@ class QueryBuilder
             $queryString = $this->getSelectQueryStringPartial();
             $queryString .= $this->getFromQueryStringPartial();
             $queryString .= $this->getInnerJoinQueryStringPartial();
+            $queryString .= $this->getLeftJoinQueryStringPartial();
             $queryString .= $this->getWhereQueryStringPartial();
             $queryString .= $this->getOrderByQueryStringPartial();
             $queryString .= $this->getLimitQueryStringPartial();
@@ -140,7 +153,7 @@ class QueryBuilder
             $this->selects = ['*'];
             $joinSelects = [];
 
-            foreach ($this->innerJoins as $join) {
+            foreach (array_merge($this->innerJoins, $this->leftJoins) as $join) {
                 $propertyColumnMap = PropertyColumnMapper::map($join['model']);
 
                 foreach ($propertyColumnMap as $property => $column) {
@@ -184,7 +197,7 @@ class QueryBuilder
                 return implode(', ', $columnSelects);
             }
 
-            foreach ($this->innerJoins as $join) {
+            foreach (array_merge($this->innerJoins, $this->leftJoins) as $join) {
                 if ($select === $join['alias']) {
                     $propertyColumnMap = PropertyColumnMapper::map($join['model']);
 
@@ -239,6 +252,32 @@ class QueryBuilder
         return $sql;
     }
 
+    /**
+     * @throws \ReflectionException
+     */
+    private function getLeftJoinQueryStringPartial(): string
+    {
+        $sql = '';
+
+        foreach ($this->leftJoins as $join) {
+            $model = $join['model'];
+
+            if (!is_subclass_of($model, LoomModel::class)) {
+                continue;
+            }
+
+            $sql .= sprintf(
+                ' LEFT JOIN %s.%s %s ON %s',
+                $model::getSchemaName(),
+                $model::getTableName(),
+                $join['alias'],
+                implode(' AND ', $this->parseJoinConditions($join['conditions']))
+            );
+        }
+
+        return $sql;
+    }
+
     private function parseJoinConditions(array $conditions): array
     {
         return array_map(function ($condition) {
@@ -266,16 +305,16 @@ class QueryBuilder
                     }
                 }
 
-                foreach ($this->innerJoins as $innerJoin) {
-                    if ($alias === $innerJoin['alias']) {
-                        $propertyColumnMap = PropertyColumnMapper::map($innerJoin['model']);
+                foreach (array_merge($this->innerJoins, $this->leftJoins) as $join) {
+                    if ($alias === $join['alias']) {
+                        $propertyColumnMap = PropertyColumnMapper::map($join['model']);
 
                         if (isset($propertyColumnMap[$column])) {
-                            $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $propertyColumnMap[$column]);
+                            $finalCondition .= sprintf('%s.%s', $join['alias'], $propertyColumnMap[$column]);
                         }
 
                         if (in_array($column, array_values($propertyColumnMap))) {
-                            $finalCondition .= sprintf('%s.%s', $innerJoin['alias'], $column);
+                            $finalCondition .= sprintf('%s.%s', $join['alias'], $column);
                         }
                     }
                 }
