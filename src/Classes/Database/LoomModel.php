@@ -76,6 +76,17 @@ abstract class LoomModel
         return $this;
     }
 
+    public function whereNot(string $columnOrProperty, mixed $value): static
+    {
+        if (!$this->queryBuilder) {
+            return $this;
+        }
+
+        $this->queryBuilder->whereNot($columnOrProperty, $value);
+
+        return $this;
+    }
+
     public function whereIn(string $columnOrProperty, array $values): static
     {
         if (!$this->queryBuilder) {
@@ -83,6 +94,17 @@ abstract class LoomModel
         }
 
         $this->queryBuilder->whereIn($columnOrProperty, $values);
+
+        return $this;
+    }
+
+    public function whereNotIn(string $columnOrProperty, array $values): static
+    {
+        if (!$this->queryBuilder) {
+            return $this;
+        }
+
+        $this->queryBuilder->whereNotIn($columnOrProperty, $values);
 
         return $this;
     }
