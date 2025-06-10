@@ -33,9 +33,14 @@ abstract class LoomModel
     public static function select(array $columns = ['*'], string $alias = 't0'): static
     {
         $instance = new static();
-        $instance->queryBuilder = new QueryBuilder(static::class, $alias)->select($columns);
 
-        return $instance;
+        try {
+            $instance->queryBuilder = new QueryBuilder(static::class, $alias)->select($columns);
+
+            return $instance;
+        } catch (\Exception $exception) {
+            return $instance;
+        }
     }
 
     public function innerJoin(string $class, string $alias, array $conditions): static
@@ -45,6 +50,17 @@ abstract class LoomModel
         }
 
         $this->queryBuilder->innerJoin($class, $alias, $conditions);
+
+        return $this;
+    }
+
+    public function leftJoin(string $class, string $alias, array $conditions): static
+    {
+        if (!$this->queryBuilder) {
+            return $this;
+        }
+
+        $this->queryBuilder->leftJoin($class, $alias, $conditions);
 
         return $this;
     }
