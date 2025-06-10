@@ -62,6 +62,10 @@ class QueryBuilderTest extends TestCase
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner FROM Application.tblPackage p ORDER BY p.intPackageId DESC',
             ],
             [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->orderBy('p.intPackageId', 'DESC'),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner FROM Application.tblPackage p ORDER BY p.intPackageId DESC',
+            ],
+            [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['id', 'name']),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name FROM Application.tblPackage p',
             ],
@@ -126,6 +130,14 @@ class QueryBuilderTest extends TestCase
             [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->select()->innerJoin(User::class, 'u', ['p.owner = u.id'])->innerJoin(Role::class, 'r', ['u.role = r.id'])->limit(1),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, u.intUserId AS u_id, u.strUsername AS u_username, u.strEmail AS u_email, u.intRoleId AS u_role, r.intRoleId AS r_id, r.strRoleName AS r_name, r.strRoleHandle AS r_handle FROM Application.tblPackage p INNER JOIN Security.tblUser u ON p.intOwnerId = u.intUserId INNER JOIN Security.ublRole r ON u.intRoleId = r.intRoleId LIMIT 1',
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select()->innerJoin(User::class, 'u', ['p.owner = u.id'])->innerJoin(Role::class, 'r', ['u.role = r.id'])->orderBy('u.id')->limit(1),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, u.intUserId AS u_id, u.strUsername AS u_username, u.strEmail AS u_email, u.intRoleId AS u_role, r.intRoleId AS r_id, r.strRoleName AS r_name, r.strRoleHandle AS r_handle FROM Application.tblPackage p INNER JOIN Security.tblUser u ON p.intOwnerId = u.intUserId INNER JOIN Security.ublRole r ON u.intRoleId = r.intRoleId ORDER BY u.intUserId ASC LIMIT 1',
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select()->innerJoin(User::class, 'u', ['p.owner = u.id'])->innerJoin(Role::class, 'r', ['u.role = r.id'])->orderBy('u.intUserId')->limit(1),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, u.intUserId AS u_id, u.strUsername AS u_username, u.strEmail AS u_email, u.intRoleId AS u_role, r.intRoleId AS r_id, r.strRoleName AS r_name, r.strRoleHandle AS r_handle FROM Application.tblPackage p INNER JOIN Security.tblUser u ON p.intOwnerId = u.intUserId INNER JOIN Security.ublRole r ON u.intRoleId = r.intRoleId ORDER BY u.intUserId ASC LIMIT 1',
             ],
         ];
     }
