@@ -60,6 +60,17 @@ abstract class LoomModel
         return $this;
     }
 
+    public function whereIn(string $columnOrProperty, array $values): static
+    {
+        if (!$this->queryBuilder) {
+            return $this;
+        }
+
+        $this->queryBuilder->whereIn($columnOrProperty, $values);
+
+        return $this;
+    }
+
     public function orderBy(string $column, string $direction = 'ASC'): static
     {
         if (!$this->queryBuilder) {

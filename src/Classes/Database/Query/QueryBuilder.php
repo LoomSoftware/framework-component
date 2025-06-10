@@ -14,6 +14,7 @@ class QueryBuilder
     private array $selects = [];
     private array $innerJoins = [];
     private array $wheres = [];
+    private array $whereIns = [];
     private array $parameters = [];
     private array $orderBys = [];
     private ?int $limit = null;
@@ -56,6 +57,13 @@ class QueryBuilder
     public function where(string $columnOrProperty, mixed $value): static
     {
         $this->wheres[] = [$columnOrProperty, $value];
+
+        return $this;
+    }
+
+    public function whereIn(string $columnOrProperty, array $values): static
+    {
+        $this->whereIns[] = [$columnOrProperty, $values];
 
         return $this;
     }
@@ -298,9 +306,49 @@ class QueryBuilder
                         }
                     }
                 }
-            }
 
-            $this->parameters[] = $value;
+                $this->parameters[] = $value;
+            }
+        }
+
+        foreach ($this->whereIns as $where) {
+            $columnOrProperty = $where[0];
+            $values = $where[1];
+
+            if (str_contains($columnOrProperty, '.')) {
+                $alias = explode('.', $columnOrProperty)[0];
+                $column = explode('.', $columnOrProperty)[1];
+
+                if ($alias === $this->alias) {
+                    $propertyColumnMap = PropertyColumnMapper::map($this->model);
+
+                    if (isset($propertyColumnMap[$column])) {
+                        $whereStrings[] = sprintf('%s.%s IN (%s)', $this->alias, $propertyColumnMap[$column], implode(', ', array_fill(0, count($values), '?')));
+                    }
+
+                    if (in_array($column, array_values($propertyColumnMap))) {
+                        $whereStrings[] = sprintf('%s.%s IN (%s)', $this->alias, $propertyColumnMap[$column], implode(', ', array_fill(0, count($values), '?')));
+                    }
+                }
+
+                foreach ($this->innerJoins as $join) {
+                    if ($alias === $join['alias']) {
+                        $propertyColumnMap = PropertyColumnMapper::map($join['model']);
+
+                        if (isset($propertyColumnMap[$column])) {
+                            $whereStrings[] = sprintf('%s.%s IN (%s)', $join['alias'], $propertyColumnMap[$column], implode(', ', array_fill(0, count($values), '?')));
+                        }
+
+                        if (in_array($column, array_values($propertyColumnMap))) {
+                            $whereStrings[] = sprintf('%s.%s IN (%s)', $join['alias'], $column, implode(', ', array_fill(0, count($values), '?')));
+                        }
+                    }
+                }
+
+                foreach ($values as $value) {
+                    $this->parameters[] = $value;
+                }
+            }
         }
 
         return count($whereStrings)

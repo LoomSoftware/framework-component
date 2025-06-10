@@ -58,6 +58,11 @@ class QueryBuilderTest extends TestCase
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner FROM Application.tblPackage p',
             ],
             [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id'])->whereIn('pt.name', ['Package Type A', 'Package Type B']),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner, pt.intPackageTypeId AS pt_id, pt.strPackageTypeName AS pt_name FROM Application.tblPackage p INNER JOIN Application.ublPackageType pt ON p.intPackageTypeId = pt.intPackageTypeId WHERE pt.strPackageTypeName IN (?, ?)',
+                'parameters' => ['Package Type A', 'Package Type B'],
+            ],
+            [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->orderBy('p.id', 'DESC'),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name, p.intPackageTypeId AS p_packageType, p.intOwnerId AS p_owner FROM Application.tblPackage p ORDER BY p.intPackageId DESC',
             ],
@@ -72,6 +77,11 @@ class QueryBuilderTest extends TestCase
             [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['intPackageId', 'name']),
                 'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name FROM Application.tblPackage p',
+            ],
+            [
+                'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['intPackageId', 'name'])->whereIn('p.id', [1, 2, 3]),
+                'expected' => 'SELECT p.intPackageId AS p_id, p.strPackageName AS p_name FROM Application.tblPackage p WHERE p.intPackageId IN (?, ?, ?)',
+                'parameters' => [1, 2, 3],
             ],
             [
                 'queryBuilder' => new QueryBuilder(Package::class, 'p')->select(['p.id', 'pt'])->innerJoin(PackageType::class, 'pt', ['p.packageType = pt.id']),
