@@ -16,7 +16,7 @@ class PackageType extends LoomModel
 {
     #[ID]
     #[Column(name: 'intPackageTypeId')]
-    protected int $id;
+    protected ?int $id = null;
 
     #[Column(name: 'strPackageTypeName')]
     protected string $name;

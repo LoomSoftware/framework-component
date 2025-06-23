@@ -16,7 +16,7 @@ class Package extends LoomModel
 {
     #[ID]
     #[Column(name: 'intPackageId')]
-    protected int $id;
+    protected ?int $id = null;
 
     #[Column(name: 'strPackageName')]
     protected string $name;
@@ -27,7 +27,7 @@ class Package extends LoomModel
     #[Column(name: 'intOwnerId')]
     protected User $owner;
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

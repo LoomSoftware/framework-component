@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Loom\FrameworkComponent\Classes\Database;
 
 use Loom\FrameworkComponent\Classes\Core\Helper\AttributeHelper;
+use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 use Loom\FrameworkComponent\Classes\Database\Mapper\PropertyColumnMapper;
@@ -14,11 +15,6 @@ abstract class LoomModel
 {
     protected static ?DatabaseConnection $databaseConnection = null;
     protected ?QueryBuilder $queryBuilder = null;
-    private ?array $propertyColumnMap = null;
-
-    public function __construct()
-    {
-    }
 
     public function getQueryBuilder(): ?QueryBuilder
     {
@@ -28,6 +24,56 @@ abstract class LoomModel
     public static function setDatabaseConnection(DatabaseConnection $databaseConnection): void
     {
         static::$databaseConnection = $databaseConnection;
+    }
+
+    public static function create(array $data): static
+    {
+        $instance = new static();
+
+        $propertyColumnMap = PropertyColumnMapper::map(static::class);
+
+        foreach ($data as $dataProperty => $value) {
+            if (isset($propertyColumnMap[$dataProperty])) {
+                $instance->$dataProperty = $value;
+            }
+
+            if (in_array($dataProperty, array_values($propertyColumnMap))) {
+                foreach ($propertyColumnMap as $property => $column) {
+                    if ($column === $property) {
+                        $instance->$property = $value;
+                    }
+                }
+            }
+        }
+
+        return $instance;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function save(): static
+    {
+        try {
+            $identifierProperty = $this->getIdentifier();
+        } catch (\Exception $exception) {
+            return $this;
+        }
+
+        if (!$this->$identifierProperty) {
+            $this->queryBuilder = new QueryBuilder(static::class, 't0');
+
+            $this->queryBuilder->insert($this);
+
+            $query = static::$databaseConnection?->getConnection()->prepare($this->queryBuilder->getQueryString());
+
+            $query->execute($this->queryBuilder->getParameters());
+            $this->$identifierProperty = (int) static::$databaseConnection?->getConnection()->lastInsertId();
+        } else {
+            // Update
+        }
+
+        return $this;
     }
 
     public static function select(array $columns = ['*'], string $alias = 't0'): static
@@ -252,6 +298,11 @@ abstract class LoomModel
         return [];
     }
 
+    public function getOne(): ?static
+    {
+        return $this->get()[0] ?? null;
+    }
+
     /**
      * @throws \ReflectionException
      */
@@ -278,6 +329,24 @@ abstract class LoomModel
         );
 
         return $tableName && is_string($tableName) ? $tableName : null;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function getIdentifier(): string
+    {
+        $reflectionClass = new \ReflectionClass(static::class);
+
+        foreach ($reflectionClass->getProperties() as $property) {
+            if (empty($property->getAttributes(ID::class))) {
+                continue;
+            }
+
+            return $property->getName();
+        }
+
+        throw new \Exception('No identifier found');
     }
 
     private function mapCallingModel(array $modelData, LoomModel $modelInstance): LoomModel

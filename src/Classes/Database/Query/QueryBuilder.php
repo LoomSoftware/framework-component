@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Loom\FrameworkComponent\Classes\Database\Query;
 
+use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
+use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
 use Loom\FrameworkComponent\Classes\Database\LoomModel;
 use Loom\FrameworkComponent\Classes\Database\Mapper\PropertyColumnMapper;
 
@@ -21,6 +23,7 @@ class QueryBuilder
     private array $parameters = [];
     private array $orderBys = [];
     private ?int $limit = null;
+    private ?LoomModel $insert = null;
 
     /**
      * @throws \Exception
@@ -37,6 +40,23 @@ class QueryBuilder
 
         $this->schema = $this->model::getSchemaName();
         $this->table = $this->model::getTableName();
+    }
+
+    public function reset(): static
+    {
+        $this->selects = [];
+        $this->innerJoins = [];
+        $this->leftJoins = [];
+        $this->wheres = [];
+        $this->whereNots = [];
+        $this->whereIns = [];
+        $this->whereNotIns = [];
+        $this->parameters = [];
+        $this->orderBys = [];
+        $this->limit = null;
+        $this->insert = null;
+
+        return $this;
     }
 
     public function select(array $columns = ['*']): static
@@ -110,20 +130,33 @@ class QueryBuilder
         return $this;
     }
 
+    public function insert(LoomModel $model): static
+    {
+        $this->insert = $model;
+
+        return $this;
+    }
+
     public function getQueryString(): string
     {
+        $queryString = '';
+
         try {
-            $queryString = $this->getSelectQueryStringPartial();
-            $queryString .= $this->getFromQueryStringPartial();
-            $queryString .= $this->getInnerJoinQueryStringPartial();
-            $queryString .= $this->getLeftJoinQueryStringPartial();
-            $queryString .= $this->getWhereQueryStringPartial();
-            $queryString .= $this->getOrderByQueryStringPartial();
-            $queryString .= $this->getLimitQueryStringPartial();
+            if ($this->insert) {
+                $queryString = $this->getInsertQueryStringPartial();
+            } else {
+                $queryString = $this->getSelectQueryStringPartial();
+                $queryString .= $this->getFromQueryStringPartial();
+                $queryString .= $this->getInnerJoinQueryStringPartial();
+                $queryString .= $this->getLeftJoinQueryStringPartial();
+                $queryString .= $this->getWhereQueryStringPartial();
+                $queryString .= $this->getOrderByQueryStringPartial();
+                $queryString .= $this->getLimitQueryStringPartial();
+            }
 
             return $queryString;
         } catch (\Exception $exception) {
-            return '';
+            return $queryString;
         }
     }
 
@@ -532,6 +565,53 @@ class QueryBuilder
         return count($orderByStrings)
             ? sprintf(' ORDER BY %s', implode(', ', $orderByStrings))
             : '';
+    }
+
+    private function getInsertQueryStringPartial(): string
+    {
+        $columns = [];
+        $reflectionClass = new \ReflectionClass($this->insert);
+
+        foreach ($reflectionClass->getProperties() as $property) {
+            $columnAttribute = $property->getAttributes(Column::class);
+            $identifierAttribute = $property->getAttributes(ID::class);
+
+            if ($columnAttribute && !$identifierAttribute) {
+                $propertyValue = $property->getValue($this->insert);
+
+                if ($propertyValue instanceof LoomModel) {
+                    $identifierProperty = $propertyValue->getIdentifier();
+
+                    $associationReflectionClass = new \ReflectionClass($propertyValue);
+                    $associationProperty = $associationReflectionClass->getProperty($identifierProperty);
+
+                    if ($associationProperty->getValue($propertyValue)) {
+                        $this->parameters[] = $associationProperty->getValue($propertyValue);
+                    } else {
+                        $newModel = $propertyValue->save();
+
+                        $associationReflectionClass = new \ReflectionClass($newModel);
+                        $associationProperty = $associationReflectionClass->getProperty($identifierProperty);
+                        $this->parameters[] = $associationProperty->getValue($newModel);
+                    }
+                } elseif (is_string($propertyValue) || is_numeric($propertyValue)) {
+                    $this->parameters[] = $propertyValue;
+                } elseif ($propertyValue instanceof \DateTimeInterface) {
+                    $this->parameters[] = sprintf('\'%s\'', $propertyValue->format('Y-m-d H:i:s'));
+                } elseif (is_bool($propertyValue)) {
+                    $this->parameters[] = $propertyValue ? 1 : 0;
+                }
+
+                foreach ($columnAttribute[0]->getArguments() as $argument) {
+                    $columns[] = $argument;
+                }
+            }
+        }
+
+        $columnsString = implode(',', $columns);
+        $valuesString = implode(',', array_fill(0, count($columns), '?'));
+
+        return sprintf('INSERT INTO %s.%s (%s) VALUES (%s)', $this->schema, $this->table, $columnsString, $valuesString);
     }
 
     private function getLimitQueryStringPartial(): string
