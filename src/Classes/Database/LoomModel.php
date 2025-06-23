@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Loom\FrameworkComponent\Classes\Database;
 
 use Loom\FrameworkComponent\Classes\Core\Helper\AttributeHelper;
+use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
 use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
@@ -49,9 +50,6 @@ abstract class LoomModel
         return $instance;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function save(): static
     {
         try {
@@ -70,7 +68,12 @@ abstract class LoomModel
             $query->execute($this->queryBuilder->getParameters());
             $this->$identifierProperty = (int) static::$databaseConnection?->getConnection()->lastInsertId();
         } else {
-            // Update
+            $this->queryBuilder = new QueryBuilder(static::class, 't0');
+
+            $this->queryBuilder->update($this);
+
+            $query = static::$databaseConnection?->getConnection()->prepare($this->queryBuilder->getQueryString());
+            $query->execute($this->queryBuilder->getParameters());
         }
 
         return $this;
@@ -347,6 +350,27 @@ abstract class LoomModel
         }
 
         throw new \Exception('No identifier found');
+    }
+
+    public function getIdentifierColumn(): string
+    {
+        $reflectionClass = new \ReflectionClass(static::class);
+
+        foreach ($reflectionClass->getProperties() as $property) {
+            if (empty($property->getAttributes(ID::class))) {
+                continue;
+            }
+
+            $columnAttribute = $property->getAttributes(Column::class);
+
+            if (empty($columnAttribute)) {
+                continue;
+            }
+
+            return $columnAttribute[0]->getArguments()['name'];
+        }
+
+        return '';
     }
 
     private function mapCallingModel(array $modelData, LoomModel $modelInstance): LoomModel

@@ -37,6 +37,11 @@ class Package extends LoomModel
         return $this->name;
     }
 
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+
     public function getPackageType(): PackageType
     {
         return $this->packageType;

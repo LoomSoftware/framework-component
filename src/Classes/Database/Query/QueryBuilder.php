@@ -24,6 +24,7 @@ class QueryBuilder
     private array $orderBys = [];
     private ?int $limit = null;
     private ?LoomModel $insert = null;
+    private ?LoomModel $update = null;
 
     /**
      * @throws \Exception
@@ -137,6 +138,13 @@ class QueryBuilder
         return $this;
     }
 
+    public function update(LoomModel $model): static
+    {
+        $this->update = $model;
+
+        return $this;
+    }
+
     public function getQueryString(): string
     {
         $queryString = '';
@@ -144,6 +152,8 @@ class QueryBuilder
         try {
             if ($this->insert) {
                 $queryString = $this->getInsertQueryStringPartial();
+            } elseif ($this->update) {
+                $queryString = $this->getUpdateQueryStringPartial();
             } else {
                 $queryString = $this->getSelectQueryStringPartial();
                 $queryString .= $this->getFromQueryStringPartial();
@@ -612,6 +622,52 @@ class QueryBuilder
         $valuesString = implode(',', array_fill(0, count($columns), '?'));
 
         return sprintf('INSERT INTO %s.%s (%s) VALUES (%s)', $this->schema, $this->table, $columnsString, $valuesString);
+    }
+
+    private function getUpdateQueryStringPartial(): string
+    {
+        $sql = sprintf('UPDATE %s.%s SET ', $this->schema, $this->table);
+        $updates = [];
+
+        $reflectionClass = new \ReflectionClass($this->update);
+
+        foreach ($reflectionClass->getProperties() as $property) {
+            $columnAttribute = $property->getAttributes(Column::class);
+            $identifierAttribute = $property->getAttributes(ID::class);
+
+            if (empty($columnAttribute) || $identifierAttribute) {
+                continue;
+            }
+
+            $propertyValue = $property->getValue($this->update);
+            $propertyColumnMap = PropertyColumnMapper::map($this->update::class);
+
+            if ($propertyValue instanceof LoomModel) {
+                $identifierProperty = $propertyValue->getIdentifier();
+                $associationReflectionClass = new \ReflectionClass($propertyValue);
+                $associationProperty = $associationReflectionClass->getProperty($identifierProperty);
+
+                $this->parameters[] = $associationProperty->getValue($propertyValue);
+                $updates[] = sprintf('%s = ?', $propertyColumnMap[$property->getName()]);
+            } elseif (is_string($propertyValue) || is_numeric($propertyValue)) {
+                $this->parameters[] = $propertyValue;
+                $updates[] = sprintf('%s = ?', $propertyColumnMap[$property->getName()]);
+            } elseif ($propertyValue instanceof \DateTimeInterface) {
+                $this->parameters[] = sprintf('\'%s\'', $propertyValue->format('Y-m-d H:i:s'));
+                $updates[] = sprintf('%s = ?', $propertyColumnMap[$property->getName()]);
+            } elseif (is_bool($propertyValue)) {
+                $this->parameters[] = $propertyValue ? 1 : 0;
+                $updates[] = sprintf('%s = ?', $propertyColumnMap[$property->getName()]);
+            }
+        }
+
+        $sql .= implode(', ', $updates);
+        $identifierColumn = $this->update->getIdentifierColumn();
+        $identifierProperty = $this->update->getIdentifier();
+
+        $this->parameters[] = $reflectionClass->getProperty($identifierProperty)->getValue($this->update);
+
+        return sprintf('%s WHERE %s = ?', $sql, $identifierColumn);
     }
 
     private function getLimitQueryStringPartial(): string
