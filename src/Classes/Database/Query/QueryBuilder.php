@@ -607,7 +607,7 @@ class QueryBuilder
                 } elseif (is_string($propertyValue) || is_numeric($propertyValue)) {
                     $this->parameters[] = $propertyValue;
                 } elseif ($propertyValue instanceof \DateTimeInterface) {
-                    $this->parameters[] = sprintf('\'%s\'', $propertyValue->format('Y-m-d H:i:s'));
+                    $this->parameters[] = $propertyValue->format('Y-m-d H:i:s');
                 } elseif (is_bool($propertyValue)) {
                     $this->parameters[] = $propertyValue ? 1 : 0;
                 }
