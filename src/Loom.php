@@ -12,6 +12,7 @@ use Loom\FrameworkComponent\Classes\Core\Middleware\MiddlewareHandler;
 use Loom\FrameworkComponent\Classes\Database\DatabaseConnection;
 use Loom\FrameworkComponent\Classes\Database\LoomModel;
 use Loom\FrameworkComponent\Controller\LoomController;
+use Loom\HttpComponent\Response;
 use Loom\RouterComponent\Router;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Http\Message\RequestInterface;
@@ -65,7 +66,7 @@ final class Loom
      */
     public function run(RequestInterface $request): ResponseInterface
     {
-        $response = $this->middlewareHandler->handle($request);
+        $response = $this->middlewareHandler->handle($request, new Response());
 
         if ($response->getStatusCode() === 200) {
             $response = $this->router->handleRequest($request);

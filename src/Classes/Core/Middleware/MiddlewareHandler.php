@@ -7,6 +7,8 @@ namespace Loom\FrameworkComponent\Classes\Core\Middleware;
 use Loom\FrameworkComponent\Classes\Core\Utility\Collection;
 use Loom\HttpComponent\Request;
 use Loom\HttpComponent\Response;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class MiddlewareHandler
 {
@@ -22,7 +24,7 @@ class MiddlewareHandler
         $this->middleware->add($middleware);
     }
 
-    public function handle(Request $request, Response $response): Response
+    public function handle(RequestInterface $request, ResponseInterface $response): Response
     {
         $handler = array_reduce(
             array_reverse($this->middleware->toArray()),
