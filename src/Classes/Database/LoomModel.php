@@ -373,6 +373,14 @@ abstract class LoomModel
         return '';
     }
 
+    /**
+     * @throws \Exception
+     */
+    public function getIdentifierValue(): int
+    {
+        return $this->{$this->getIdentifier()};
+    }
+
     private function mapCallingModel(array $modelData, LoomModel $modelInstance): LoomModel
     {
         $reflectionClass = new \ReflectionClass(static::class);
