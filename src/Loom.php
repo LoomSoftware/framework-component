@@ -8,6 +8,7 @@ use Dotenv\Dotenv;
 use Loom\DependencyInjectionComponent\DependencyContainer;
 use Loom\DependencyInjectionComponent\DependencyManager;
 use Loom\DependencyInjectionComponent\Exception\NotFoundException;
+use Loom\FrameworkComponent\Classes\Core\Middleware\MiddlewareHandler;
 use Loom\FrameworkComponent\Classes\Database\DatabaseConnection;
 use Loom\FrameworkComponent\Classes\Database\LoomModel;
 use Loom\FrameworkComponent\Controller\LoomController;
@@ -22,6 +23,7 @@ final class Loom
     private DependencyContainer $container;
     private DependencyManager $dependencyManager;
     private Router $router;
+    private MiddlewareHandler $middlewareHandler;
 
     /**
      * @throws \Exception|NotFoundException
@@ -37,6 +39,7 @@ final class Loom
         $this->container = new DependencyContainer();
         $this->dependencyManager = new DependencyManager($this->container);
         $this->router = new Router($this->container);
+        $this->middlewareHandler = new MiddlewareHandler();
 
         if (isset($_ENV['PAGE_NOT_FOUND_CONTROLLER'])) {
             $this->router->setNotFoundHandler($_ENV['PAGE_NOT_FOUND_CONTROLLER']);
@@ -62,7 +65,11 @@ final class Loom
      */
     public function run(RequestInterface $request): ResponseInterface
     {
-        $response = $this->router->handleRequest($request);
+        $response = $this->middlewareHandler->handle($request);
+
+        if ($response->getStatusCode() === 200) {
+            $response = $this->router->handleRequest($request);
+        }
 
         http_response_code($response->getStatusCode());
         header(sprintf(
