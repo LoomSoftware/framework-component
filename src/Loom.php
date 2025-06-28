@@ -34,8 +34,7 @@ final class Loom
         private readonly string $cacheDirectory,
         private readonly string $templateDirectory
     ) {
-        $dotenv = Dotenv::createImmutable($this->configDirectory);
-        $dotenv->load();
+        Dotenv::createImmutable($this->configDirectory)->load();
 
         $this->container = new DependencyContainer();
         $this->dependencyManager = new DependencyManager($this->container);
