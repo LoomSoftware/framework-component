@@ -26,6 +26,8 @@ final class Loom
     private Router $router;
     private MiddlewareHandler $middlewareHandler;
 
+    private const array VALID_CONFIG_EXTENSIONS = ['yaml', 'yml'];
+
     /**
      * @throws \Exception|NotFoundException
      */
@@ -88,24 +90,13 @@ final class Loom
         return $response;
     }
 
-    public static function getDatabaseConnection(): DatabaseConnection
-    {
-        return Loom::$databaseConnection;
-    }
-
     /**
      * @throws NotFoundException
      */
     private function loadDependencies(): void
     {
-        // @todo: Could be improved.
-        $files = [
-            'services.yaml',
-            'services.yml',
-        ];
-
-        foreach ($files as $file) {
-            $filePath = sprintf('%s/%s', $this->configDirectory, $file);
+        foreach (self::VALID_CONFIG_EXTENSIONS as $extension) {
+            $filePath = sprintf('%s/services.%s', $this->configDirectory, $extension);
 
             if (file_exists($filePath)) {
                 $this->dependencyManager
@@ -117,13 +108,8 @@ final class Loom
 
     private function loadRoutes(): void
     {
-        $files = [
-            'routes.yaml',
-            'routes.yml',
-        ];
-
-        foreach ($files as $file) {
-            $filePath = sprintf('%s/%s', $this->configDirectory, $file);
+        foreach (self::VALID_CONFIG_EXTENSIONS as $extension) {
+            $filePath = sprintf('%s/routes.%s', $this->configDirectory, $extension);
 
             if (file_exists($filePath)) {
                 $this->router
