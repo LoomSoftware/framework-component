@@ -46,7 +46,7 @@ final class Loom
         $this->setPageNotFoundController();
         $this->loadDatabaseSettings();
 
-        LoomController::setDirectories($this->templateDirectory, $this->cacheDirectory);
+        LoomController::setDirectories($this->templateDirectory, sprintf('%s/views', $this->cacheDirectory));
 
         $this->load();
     }
