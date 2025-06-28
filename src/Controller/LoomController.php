@@ -49,6 +49,8 @@ class LoomController
 
     protected function render(string $template, array $data = []): ResponseInterface
     {
+        $template = str_contains($template, '.latte') ? $template : sprintf('%s.latte', $template);
+
         return $this->respond(
             $this->templateEngine->renderToString(sprintf('%s/%s', static::$templateDirectory, $template), $data)
         );
