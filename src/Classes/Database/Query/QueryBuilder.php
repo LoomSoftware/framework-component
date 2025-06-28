@@ -657,6 +657,8 @@ class QueryBuilder
                     $this->parameters[] = $propertyValue->format('Y-m-d H:i:s');
                 } elseif (is_bool($propertyValue)) {
                     $this->parameters[] = $propertyValue ? 1 : 0;
+                } else {
+                    $this->parameters[] = $propertyValue;
                 }
 
                 foreach ($columnAttribute[0]->getArguments() as $argument) {
