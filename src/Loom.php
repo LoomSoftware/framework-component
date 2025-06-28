@@ -43,23 +43,12 @@ final class Loom
         $this->router = new Router($this->container);
         $this->middlewareHandler = new MiddlewareHandler();
 
-        if (isset($_ENV['PAGE_NOT_FOUND_CONTROLLER'])) {
-            $this->router->setNotFoundHandler($_ENV['PAGE_NOT_FOUND_CONTROLLER']);
-        }
-
-        if (isset($_ENV['DATABASE_HOST']) && isset($_ENV['DATABASE_USER']) && isset($_ENV['DATABASE_PASSWORD'])) {
-            Loom::$databaseConnection = new DatabaseConnection(
-                sprintf('%s:host=%s;port=%s;', $_ENV['DATABASE_DRIVER'] ?? 'mysql', $_ENV['DATABASE_HOST'], $_ENV['DATABASE_PORT'] ?? 3306),
-                $_ENV['DATABASE_USER'],
-                $_ENV['DATABASE_PASSWORD']
-            );
-            LoomModel::setDatabaseConnection(Loom::$databaseConnection);
-        }
+        $this->setPageNotFoundController();
+        $this->loadDatabaseSettings();
 
         LoomController::setDirectories($this->templateDirectory, $this->cacheDirectory);
 
-        $this->loadDependencies();
-        $this->loadRoutes();
+        $this->load();
     }
 
     /**
@@ -88,6 +77,34 @@ final class Loom
         }
 
         return $response;
+    }
+
+    /**
+     * @throws NotFoundException
+     */
+    private function load(): void
+    {
+        $this->loadDependencies();
+        $this->loadRoutes();
+    }
+
+    private function setPageNotFoundController(): void
+    {
+        if (isset($_ENV['PAGE_NOT_FOUND_CONTROLLER'])) {
+            $this->router->setNotFoundHandler($_ENV['PAGE_NOT_FOUND_CONTROLLER']);
+        }
+    }
+
+    private function loadDatabaseSettings(): void
+    {
+        if (isset($_ENV['DATABASE_HOST']) && isset($_ENV['DATABASE_USER']) && isset($_ENV['DATABASE_PASSWORD'])) {
+            Loom::$databaseConnection = new DatabaseConnection(
+                sprintf('%s:host=%s;port=%s;', $_ENV['DATABASE_DRIVER'] ?? 'mysql', $_ENV['DATABASE_HOST'], $_ENV['DATABASE_PORT'] ?? 3306),
+                $_ENV['DATABASE_USER'],
+                $_ENV['DATABASE_PASSWORD']
+            );
+            LoomModel::setDatabaseConnection(Loom::$databaseConnection);
+        }
     }
 
     /**
