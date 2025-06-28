@@ -24,6 +24,7 @@ CREATE TABLE tblUser (
     strUsername VARCHAR(60) NOT NULL,
     strEmail VARCHAR(255) NOT NULL,
     intRoleId INT UNSIGNED NOT NULL DEFAULT 1,
+    dtmCreated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (intUserId),
     UNIQUE (strUsername),
     FOREIGN KEY (intRoleId) REFERENCES ublRole(intRoleId)

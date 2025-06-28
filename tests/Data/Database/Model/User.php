@@ -27,6 +27,12 @@ class User extends LoomModel
     #[Column(name: 'intRoleId')]
     protected Role $role;
 
+    #[Column(name: 'dtmCreated')]
+    protected \DateTimeInterface $created;
+
+    #[Column(name: 'dtmUpdated')]
+    protected ?\DateTimeInterface $updated = null;
+
     public function getId(): int
     {
         return $this->id;

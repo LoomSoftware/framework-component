@@ -414,7 +414,7 @@ abstract class LoomModel
     /**
      * @throws \DateMalformedStringException|\Exception|\ReflectionException
      */
-    private function convertDatabaseValueToProperty(\ReflectionClass $class, string $property, string|int $value): \DateTime|bool|int|string
+    private function convertDatabaseValueToProperty(\ReflectionClass $class, string $property, string|int|null $value): \DateTime|bool|int|string|null
     {
         $reflectionProperty = $class->getProperty($property);
 
@@ -423,7 +423,7 @@ abstract class LoomModel
         }
 
         if ($reflectionProperty->getType()->getName() === \DateTimeInterface::class) {
-            $value = new \DateTime($value);
+            $value = $value ? new \DateTime($value) : $value;
         }
 
         if ($reflectionProperty->getType()->getName() === 'bool') {
