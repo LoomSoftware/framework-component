@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Loom\FrameworkComponent\TestData\Database\Model;
 
+use Loom\FrameworkComponent\Classes\Core\Utility\ModelCollection;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
 use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
+use Loom\FrameworkComponent\Classes\Database\Attributes\JoinTable;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 use Loom\FrameworkComponent\Classes\Database\LoomModel;
@@ -30,8 +32,14 @@ class User extends LoomModel
     #[Column(name: 'dtmCreated')]
     protected \DateTimeInterface $created;
 
-    #[Column(name: 'dtmUpdated')]
-    protected ?\DateTimeInterface $updated = null;
+    #[JoinTable(
+        name: 'tblUserPermission',
+        schema: 'Security',
+        joinAlias: 'ups',
+        selfColumn: 'intUserId',
+        foreignColumn: 'intPermissionId'
+    )]
+    protected ModelCollection $permissions;
 
     public function getId(): int
     {
@@ -51,5 +59,10 @@ class User extends LoomModel
     public function getRole(): Role
     {
         return $this->role;
+    }
+
+    public function getPermissions(): ModelCollection
+    {
+        return $this->permissions;
     }
 }

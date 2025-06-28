@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Loom\FrameworkComponent\Classes\Database;
 
 use Loom\FrameworkComponent\Classes\Core\Helper\AttributeHelper;
+use Loom\FrameworkComponent\Classes\Core\Utility\ModelCollection;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
 use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
+use Loom\FrameworkComponent\Classes\Database\Attributes\JoinTable;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Schema;
 use Loom\FrameworkComponent\Classes\Database\Attributes\Table;
 use Loom\FrameworkComponent\Classes\Database\Mapper\PropertyColumnMapper;
@@ -92,7 +94,7 @@ abstract class LoomModel
         }
     }
 
-    public function innerJoin(string $class, string $alias, array $conditions): static
+    public function innerJoin(string $class, string $alias, array $conditions = []): static
     {
         if (!$this->queryBuilder) {
             return $this;
@@ -284,6 +286,33 @@ abstract class LoomModel
 
                                     if ($joinToModel) {
                                         $joinToModel->$joinToColumn = $association;
+                                    }
+                                }
+                            }
+
+                            if (empty($join['conditions'])) {
+                                $selfReflectionClass = new \ReflectionClass(static::class);
+
+                                foreach($selfReflectionClass->getProperties() as $property) {
+                                    if (empty($property->getAttributes(JoinTable::class))) {
+                                        continue;
+                                    }
+
+                                    $joinTableConditions = $this->queryBuilder->getJoinTableConditions();
+
+                                    foreach ($joinTableConditions as $joinTableCondition) {
+                                        if ($joinTableCondition['property'] !== $property->getName()) {
+                                            continue;
+                                        }
+
+                                        $joinToProperty = $joinTableCondition['property'];
+
+                                        if (isset($modelInstance->$joinToProperty) && $modelInstance->$joinToProperty instanceof ModelCollection) {
+                                            $modelInstance->$joinToProperty->add($association);
+                                        } else {
+                                            $modelInstance->$joinToProperty = new ModelCollection();
+                                            $modelInstance->$joinToProperty->add($association);
+                                        }
                                     }
                                 }
                             }

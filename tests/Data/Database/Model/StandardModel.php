@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Data\Database\Model;
+namespace Loom\FrameworkComponent\TestData\Database\Model;
 
 class StandardModel
 {

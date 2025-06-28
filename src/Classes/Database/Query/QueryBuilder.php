@@ -6,6 +6,7 @@ namespace Loom\FrameworkComponent\Classes\Database\Query;
 
 use Loom\FrameworkComponent\Classes\Database\Attributes\Column;
 use Loom\FrameworkComponent\Classes\Database\Attributes\ID;
+use Loom\FrameworkComponent\Classes\Database\Attributes\JoinTable;
 use Loom\FrameworkComponent\Classes\Database\LoomModel;
 use Loom\FrameworkComponent\Classes\Database\Mapper\PropertyColumnMapper;
 
@@ -23,6 +24,7 @@ class QueryBuilder
     private array $parameters = [];
     private array $orderBys = [];
     private ?int $limit = null;
+    private array $joinTableConditions = [];
     private ?LoomModel $insert = null;
     private ?LoomModel $update = null;
 
@@ -67,7 +69,7 @@ class QueryBuilder
         return $this;
     }
 
-    public function innerJoin(string $model, string $alias, array $conditions): static
+    public function innerJoin(string $model, string $alias, array $conditions = []): static
     {
         $this->innerJoins[] = [
             'model' => $model,
@@ -180,6 +182,11 @@ class QueryBuilder
         return $this->innerJoins;
     }
 
+    public function getJoinTableConditions(): array
+    {
+        return $this->joinTableConditions;
+    }
+
     public function getParameters(): array
     {
         return $this->parameters;
@@ -283,13 +290,53 @@ class QueryBuilder
                 continue;
             }
 
-            $sql .= sprintf(
-                ' INNER JOIN %s.%s %s ON %s',
-                $model::getSchemaName(),
-                $model::getTableName(),
-                $join['alias'],
-                implode(' AND ', $this->parseJoinConditions($join['conditions']))
-            );
+            if (!empty($join['conditions'])) {
+                $sql .= sprintf(
+                    ' INNER JOIN %s.%s %s ON %s',
+                    $model::getSchemaName(),
+                    $model::getTableName(),
+                    $join['alias'],
+                    implode(' AND ', $this->parseJoinConditions($join['conditions']))
+                );
+            } else {
+                $reflectionClass = new \ReflectionClass($this->model);
+
+                foreach ($reflectionClass->getProperties() as $property) {
+                    $joinTableAttribute = $property->getAttributes(JoinTable::class);
+
+                    if (empty($joinTableAttribute)) {
+                        continue;
+                    }
+
+                    $joinTableAttribute = $joinTableAttribute[0]->newInstance();
+
+                    $sql .= sprintf(
+                        ' INNER JOIN %s.%s %s ON %s.%s = %s.%s',
+                        $joinTableAttribute->getSchema(),
+                        $joinTableAttribute->getName(),
+                        $joinTableAttribute->getJoinAlias(),
+                        $this->alias,
+                        $joinTableAttribute->getSelfColumn(),
+                        $joinTableAttribute->getJoinAlias(),
+                        $joinTableAttribute->getSelfColumn()
+                    );
+
+                    $sql .= sprintf(
+                        ' INNER JOIN %s.%s %s ON %s.%s = %s.%s',
+                        $model::getSchemaName(),
+                        $model::getTableName(),
+                        $join['alias'],
+                        $joinTableAttribute->getJoinAlias(),
+                        $joinTableAttribute->getForeignColumn(),
+                        $join['alias'],
+                        $joinTableAttribute->getForeignColumn()
+                    );
+                    $this->joinTableConditions[] = [
+                        'property' => $property->getName(),
+                        'alias' => $join['alias'],
+                    ];
+                }
+            }
         }
 
         return $sql;

@@ -19,6 +19,19 @@ INSERT INTO ublRole
 VALUES
     ('User', 'USER');
 
+CREATE TABLE ublPermission (
+    intPermissionId INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    strPermissionName VARCHAR(60) NOT NULL,
+    strPermissionHandle VARCHAR(60) NOT NULL,
+    PRIMARY KEY (intPermissionId),
+    UNIQUE (strPermissionHandle)
+);
+
+INSERT INTO ublPermission
+    (strPermissionName, strPermissionHandle)
+VALUES
+    ('Edit Users', 'EDIT_USERS');
+
 CREATE TABLE tblUser (
     intUserId INT UNSIGNED NOT NULL AUTO_INCREMENT,
     strUsername VARCHAR(60) NOT NULL,
@@ -35,6 +48,19 @@ INSERT INTO tblUser
 VALUES
     ('Test User', 'testuser@test.com'),
     ('Test User 2', 'testuser2@test.com');
+
+CREATE TABLE tblUserPermission (
+    intUserId INT UNSIGNED NOT NULL,
+    intPermissionId INT UNSIGNED NOT NULL,
+    PRIMARY KEY (intUserId, intPermissionId),
+    FOREIGN KEY (intUserId) REFERENCES tblUser(intUserId),
+    FOREIGN KEY (intPermissionId) REFERENCES ublPermission(intPermissionId)
+);
+
+INSERT INTO tblUserPermission
+    (intUserId, intPermissionId)
+VALUES
+    (1, 1);
 
 USE Application;
 
